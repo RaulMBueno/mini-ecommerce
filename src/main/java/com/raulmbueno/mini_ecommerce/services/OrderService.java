@@ -2,7 +2,9 @@ package com.raulmbueno.mini_ecommerce.services;
 
 import com.raulmbueno.mini_ecommerce.dtos.OrderDTO;
 import com.raulmbueno.mini_ecommerce.entities.Order;
+import com.raulmbueno.mini_ecommerce.entities.Client; 
 import com.raulmbueno.mini_ecommerce.repositories.OrderRepository;
+import com.raulmbueno.mini_ecommerce.repositories.ClientRepository; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,9 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired 
+    private ClientRepository clientRepository;
+
     @Transactional(readOnly = true)
     public List<OrderDTO> findAll() {
         List<Order> list = orderRepository.findAll();
@@ -26,6 +31,10 @@ public class OrderService {
         Order entity = new Order();
         entity.setMoment(dto.getMoment());
         entity.setOrderStatus(dto.getOrderStatus());
+        
+        Client client = clientRepository.getReferenceById(dto.getClient().getId());
+        entity.setClient(client);
+
         entity = orderRepository.save(entity);
         return new OrderDTO(entity);
     }
