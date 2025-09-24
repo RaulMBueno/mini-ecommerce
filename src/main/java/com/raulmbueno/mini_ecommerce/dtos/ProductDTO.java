@@ -9,20 +9,23 @@ public class ProductDTO implements Serializable {
 
     private Long id;
     private String name;
+    private String description;
     private BigDecimal price;
-    
+
     public ProductDTO() {
     }
 
-    public ProductDTO(Long id, String name, BigDecimal price) {
+    public ProductDTO(Long id, String name, String description, BigDecimal price) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.price = price;
     }
 
     public ProductDTO(Product entity) {
         this.id = entity.getId();
         this.name = entity.getName();
+        this.description = entity.getDescription();
         this.price = entity.getPrice();
     }
 
@@ -32,6 +35,10 @@ public class ProductDTO implements Serializable {
 
     public String getName() {
         return name;
+    }
+    
+    public String getDescription() {
+        return description;
     }
 
     public BigDecimal getPrice() {

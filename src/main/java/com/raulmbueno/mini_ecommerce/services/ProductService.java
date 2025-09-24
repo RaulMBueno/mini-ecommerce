@@ -1,5 +1,6 @@
 package com.raulmbueno.mini_ecommerce.services;
 
+import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
 import com.raulmbueno.mini_ecommerce.entities.Product;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import com.raulmbueno.mini_ecommerce.exceptions.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -16,9 +18,10 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public List<Product> findAll() {
-        return productRepository.findAll();
-    }
+    public List<ProductDTO> findAll() {
+    List<Product> list = productRepository.findAll();
+    return list.stream().map(x -> new ProductDTO(x)).collect(Collectors.toList());
+    }    
     
     public Product save(Product product) {
         return productRepository.save(product);
