@@ -1,5 +1,6 @@
 package com.raulmbueno.mini_ecommerce.controllers;
 
+import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
 import com.raulmbueno.mini_ecommerce.entities.Product;
 import com.raulmbueno.mini_ecommerce.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +24,18 @@ public class ProductController {
     private ProductService service;
 
     @GetMapping
-    public ResponseEntity<List<Product>> findAll() {
-        List<Product> list = service.findAll();
-        return ResponseEntity.ok().body(list);
+    public ResponseEntity<List<ProductDTO>> findAll() {
+    List<ProductDTO> list = service.findAll();
+    return ResponseEntity.ok().body(list);
     }
-
+    
     @PostMapping
-    public ResponseEntity<Product> insert(@RequestBody Product product) {
-        Product newProduct = service.save(product);
-        return ResponseEntity.status(201).body(newProduct);
+    public ResponseEntity<ProductDTO> insert(@RequestBody ProductDTO dto) {
+    Product product = new Product(null, dto.getName(), dto.getPrice());
+    product = service.save(product);
+    return ResponseEntity.status(201).body(new ProductDTO(product));
     }
+    
     @GetMapping(value = "/{id}")
     public ResponseEntity<Product> findById(@PathVariable Long id) {
     Product product = service.findById(id);
