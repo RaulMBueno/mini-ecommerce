@@ -1,4 +1,4 @@
-package com.devsuperior.dscommerce.entities;
+package com.raulmbueno.mini_ecommerce.entities;
 
 import jakarta.persistence.*;
 import java.util.Objects;
