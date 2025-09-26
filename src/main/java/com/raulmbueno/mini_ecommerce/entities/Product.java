@@ -11,7 +11,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import java.util.HashSet;
-import java.util.Locale.Category;
+import com.raulmbueno.mini_ecommerce.entities.Category;
 import java.util.Set;
 
 @Entity
