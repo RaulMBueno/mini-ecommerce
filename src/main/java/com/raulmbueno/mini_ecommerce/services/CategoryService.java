@@ -1,5 +1,6 @@
 package com.raulmbueno.mini_ecommerce.services;
 
+import com.raulmbueno.mini_ecommerce.dtos.CategoryDTO;
 import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,11 @@ public class CategoryService {
     private CategoryRepository repository;
 
     @Transactional(readOnly = true)
-    public List<Category> findAll() {
+    public List<CategoryDTO> findAll() {
+        
         List<Category> result = repository.findAll();
-        return result;
+
+        
+        return result.stream().map(x -> new CategoryDTO(x)).collect(Collectors.toList());
     }
 }
