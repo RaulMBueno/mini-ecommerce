@@ -26,6 +26,7 @@ public class Product {
     private String name;
     private String description;
     private BigDecimal price;
+    private String imgUrl;
 
     @ManyToMany
     @JoinTable(name = "tb_product_category",
@@ -43,4 +44,13 @@ public class Product {
         this.price = price;
         
     }
+   
+    public String getImgUrl() {
+    return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+    this.imgUrl = imgUrl;
+    }
+
 }
