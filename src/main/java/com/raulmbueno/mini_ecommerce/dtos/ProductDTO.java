@@ -15,14 +15,12 @@ public class ProductDTO {
     private BigDecimal price;
     private String imgUrl;
     
-    // O DTO do produto deve incluir a lista de categorias no formato DTO
+
     private Set<CategoryDTO> categories = new HashSet<>();
 
-    // Construtor padrão (vazio)
     public ProductDTO() {
     }
 
-    // Construtor com todos os campos básicos (sem categorias)
     public ProductDTO(Long id, String name, String description, BigDecimal price, String imgUrl) {
         this.id = id;
         this.name = name;
@@ -31,7 +29,6 @@ public class ProductDTO {
         this.imgUrl = imgUrl;
     }
 
-    // CONSTRUTOR DE CONVERSÃO: Converte a entidade Product para ProductDTO
     public ProductDTO(Product entity) {
         id = entity.getId();
         name = entity.getName();
@@ -39,11 +36,9 @@ public class ProductDTO {
         price = entity.getPrice();
         imgUrl = entity.getImgUrl();
         
-        // Converte o Set<Category> (Entidade) para Set<CategoryDTO>
         categories = entity.getCategories().stream().map(x -> new CategoryDTO(x)).collect(Collectors.toSet());
     }
 
-    // --- GETTERS & SETTERS (Opcionais, mas mantidos para DTOs) ---
     
     public Long getId() {
         return id;
