@@ -1,5 +1,4 @@
 package com.raulmbueno.mini_ecommerce.entities;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

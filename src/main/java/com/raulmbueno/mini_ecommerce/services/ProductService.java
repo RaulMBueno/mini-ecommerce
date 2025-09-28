@@ -1,13 +1,15 @@
 package com.raulmbueno.mini_ecommerce.services;
 
+import com.raulmbueno.mini_ecommerce.dtos.CategoryDTO;
 import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
+import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.entities.Product;
+import com.raulmbueno.mini_ecommerce.exceptions.ResourceNotFoundException;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import jakarta.persistence.EntityNotFoundException;
-import com.raulmbueno.mini_ecommerce.exceptions.ResourceNotFoundException;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,31 +19,59 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
-
+    
+    @Transactional(readOnly = true)
     public List<ProductDTO> findAll() {
-    List<Product> list = productRepository.findAll();
-    return list.stream().map(x -> new ProductDTO(x)).collect(Collectors.toList());
-    }    
-    
-    public Product save(Product product) {
-        return productRepository.save(product);
-    
+        List<Product> list = productRepository.findAll();
+        return list.stream().map(x -> new ProductDTO(x)).collect(Collectors.toList());
     }
-    public Product findById(Long id) {
-    Optional<Product> obj = productRepository.findById(id);
-    return obj.orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+
+    @Transactional(readOnly = true)
+    public ProductDTO findById(Long id) {
+        Optional<Product> obj = productRepository.findById(id);
+        Product entity = obj.orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+        return new ProductDTO(entity); 
     }
+
+    @Transactional
+    public ProductDTO insert(ProductDTO dto) { 
+        Product entity = new Product();
+        copyDtoToEntity(dto, entity);
+        
+        entity = productRepository.save(entity);
+        return new ProductDTO(entity);
+    }
+    
+    @Transactional
+    public ProductDTO update(Long id, ProductDTO dto) { 
+        try {
+            Product entity = productRepository.getReferenceById(id);
+            copyDtoToEntity(dto, entity);
+            
+            entity = productRepository.save(entity);
+            return new ProductDTO(entity);
+            
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Resource not found. ID: " + id);
+        }
+    }
+ 
     public void delete(Long id) {
-    productRepository.deleteById(id);
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Resource not found. ID: " + id);
+        }
+        productRepository.deleteById(id);
     }
-    public Product update(Long id, Product product) {
-    try {
-    Product entity = productRepository.getReferenceById(id);
-        entity.setName(product.getName());
-        entity.setPrice(product.getPrice());
-        return productRepository.save(entity);
-    } catch (EntityNotFoundException e) {
-        throw new RuntimeException("Resource not found");
-    }
+    
+    private void copyDtoToEntity(ProductDTO dto, Product entity) {
+        entity.setName(dto.getName());
+        entity.setDescription(dto.getDescription());
+        entity.setPrice(dto.getPrice());
+        entity.setImgUrl(dto.getImgUrl());
+        entity.getCategories().clear(); 
+        for (CategoryDTO catDTO : dto.getCategories()) {
+            Category category = new Category(catDTO.getId(), catDTO.getName()); 
+            entity.getCategories().add(category);
+        }
     }
 }
