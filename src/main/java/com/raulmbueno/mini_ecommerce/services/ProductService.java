@@ -5,6 +5,7 @@ import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
 import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.entities.Product;
 import com.raulmbueno.mini_ecommerce.exceptions.ResourceNotFoundException;
+import com.raulmbueno.mini_ecommerce.repositories.CategoryRepository;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+
 @Service
 public class ProductService {
+    @Autowired 
+    private CategoryRepository categoryRepository; 
+
 
     @Autowired
     private ProductRepository productRepository;
@@ -64,14 +70,15 @@ public class ProductService {
     }
     
     private void copyDtoToEntity(ProductDTO dto, Product entity) {
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        entity.setPrice(dto.getPrice());
-        entity.setImgUrl(dto.getImgUrl());
-        entity.getCategories().clear(); 
+    entity.setName(dto.getName());
+    entity.setDescription(dto.getDescription());
+    entity.setPrice(dto.getPrice());
+    entity.setImgUrl(dto.getImgUrl());
+    entity.getCategories().clear(); 
         for (CategoryDTO catDTO : dto.getCategories()) {
-            Category category = new Category(catDTO.getId(), catDTO.getName()); 
+             Category category = categoryRepository.findById(catDTO.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + catDTO.getId()));   
             entity.getCategories().add(category);
-        }
+    }
     }
 }

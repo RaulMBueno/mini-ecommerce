@@ -1,7 +1,10 @@
 package com.raulmbueno.mini_ecommerce.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_category")
@@ -9,8 +12,15 @@ public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id") // CRÍTICO: Resolve ambiguidades da PK
     private Long id;
+    
     private String name;
+
+    // CRÍTICO: Adição do lado inverso do relacionamento
+    @JsonIgnore // Essencial para evitar loop infinito na serialização JSON
+    @ManyToMany(mappedBy = "categories")
+    private Set<Product> products = new HashSet<>();
 
     public Category() {
     }
@@ -20,6 +30,7 @@ public class Category {
         this.name = name;
     }
 
+    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -35,7 +46,13 @@ public class Category {
     public void setName(String name) {
         this.name = name;
     }
-
+    
+    // Getter do novo relacionamento bidirecional
+    public Set<Product> getProducts() {
+        return products;
+    }
+    
+    // Equals e HashCode
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

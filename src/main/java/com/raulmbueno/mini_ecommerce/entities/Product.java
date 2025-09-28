@@ -1,25 +1,21 @@
 package com.raulmbueno.mini_ecommerce.entities;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.JoinColumn;
 import java.util.HashSet;
-import com.raulmbueno.mini_ecommerce.entities.Category;
 import java.util.Set;
 
 @Entity
-@Data
-@NoArgsConstructor
+@Data // Gera getters, setters, equals, hashCode
+@NoArgsConstructor // Construtor sem argumentos
+@Table(name = "tb_product") // Adicionei a anotação @Table para consistência
 public class Product {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id") // CRÍTICO: Resolve ambiguidades da PK
     private Long id;
 
     private String name;
@@ -32,24 +28,13 @@ public class Product {
         joinColumns = @JoinColumn(name = "product_id"),
         inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new HashSet<>();
-
-    public Set<Category> getCategories() {
-        return categories;
-    }
     
+    // Construtor manual (mantido, mas pode ser simplificado se você usar @AllArgsConstructor)
     public Product(String name, String description, BigDecimal price) {
         this.name = name;
         this.description = description;
         this.price = price;
-        
     }
-   
-    public String getImgUrl() {
-    return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-    this.imgUrl = imgUrl;
-    }
-
+    
+    // NOTA: Todos os outros getters/setters são gerados pelo @Data
 }
