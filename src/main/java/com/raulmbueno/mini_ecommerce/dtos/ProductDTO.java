@@ -1,6 +1,5 @@
 package com.raulmbueno.mini_ecommerce.dtos;
 
-import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.entities.Product;
 
 import java.math.BigDecimal;
