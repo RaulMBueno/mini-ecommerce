@@ -11,6 +11,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,6 +27,10 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+
+    @Autowired
+    private ProductRepository repository; 
     
     @Transactional(readOnly = true)
     public List<ProductDTO> findAll() {
@@ -60,6 +66,16 @@ public class ProductService {
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Resource not found. ID: " + id);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDTO> findAllPaged(Pageable pageable) {
+    // 1. O repositório faz a busca paginada, retornando um objeto Page de Entidades.
+        Page<Product> list = repository.findAll(pageable);
+    
+    // 2. O método map() do Page converte cada Product para ProductDTO.
+    // O Page (diferente de uma List) já tem o suporte nativo para este mapeamento.
+        return list.map(ProductDTO::new);
     }
  
     public void delete(Long id) {

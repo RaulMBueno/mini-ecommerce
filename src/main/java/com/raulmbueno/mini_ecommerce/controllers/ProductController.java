@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
@@ -23,6 +25,21 @@ public class ProductController {
     @Autowired
     private ProductService service;
     @GetMapping
+    
+    public ResponseEntity<Page<ProductDTO>> findAllPaged(Pageable pageable) {
+        
+        // Se este método for chamado, ele usa a Paginação.
+        Page<ProductDTO> list = service.findAllPaged(pageable);
+        
+        return ResponseEntity.ok().body(list);
+    }
+    
+    // VERIFIQUE SE NÃO EXISTE NENHUM OUTRO MÉTODO GET /products SEM PARÂMETROS
+    // public ResponseEntity<List<ProductDTO>> findAll() { ... }
+    
+    // ... (restante do CRUD: findById, insert, update, delete)
+
+
     public ResponseEntity<List<ProductDTO>> findAll() {
         List<ProductDTO> list = service.findAll();
         return ResponseEntity.ok().body(list);
