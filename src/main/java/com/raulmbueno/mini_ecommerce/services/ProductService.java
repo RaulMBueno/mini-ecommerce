@@ -4,9 +4,10 @@ import com.raulmbueno.mini_ecommerce.dtos.CategoryDTO;
 import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
 import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.entities.Product;
-import com.raulmbueno.mini_ecommerce.exceptions.ResourceNotFoundException;
 import com.raulmbueno.mini_ecommerce.repositories.CategoryRepository;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
+import com.raulmbueno.mini_ecommerce.services.exceptions.ResourceNotFoundException;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,11 +71,8 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductDTO> findAllPaged(Pageable pageable) {
-    // 1. O repositório faz a busca paginada, retornando um objeto Page de Entidades.
         Page<Product> list = repository.findAll(pageable);
     
-    // 2. O método map() do Page converte cada Product para ProductDTO.
-    // O Page (diferente de uma List) já tem o suporte nativo para este mapeamento.
         return list.map(ProductDTO::new);
     }
  

@@ -1,4 +1,4 @@
-package com.raulmbueno.mini_ecommerce.exceptions;
+package com.raulmbueno.mini_ecommerce.services.exceptions;
 
 public class ResourceNotFoundException extends RuntimeException {
 
