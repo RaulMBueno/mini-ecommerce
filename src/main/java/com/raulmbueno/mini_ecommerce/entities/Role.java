@@ -21,6 +21,5 @@ public class Role implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String authority; // Ex: "ROLE_ADMIN", "ROLE_CLIENT"
-    // Padrão Spring Security para nomes de roles: prefixo "ROLE_"
+    private String authority;
 }
