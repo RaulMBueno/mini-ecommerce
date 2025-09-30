@@ -29,7 +29,6 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository; 
 
-    // 1. GET ALL
     @Transactional(readOnly = true)
     public List<ProductDTO> findAll() {
         List<Product> list = productRepository.findAll();

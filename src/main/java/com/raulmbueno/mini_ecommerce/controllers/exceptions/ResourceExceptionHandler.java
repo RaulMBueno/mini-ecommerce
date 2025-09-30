@@ -5,6 +5,7 @@ import com.raulmbueno.mini_ecommerce.services.exceptions.ResourceNotFoundExcepti
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -38,6 +39,20 @@ public class ResourceExceptionHandler {
         err.setError("Database exception");
         err.setMessage(e.getMessage()); 
         err.setPath(request.getRequestURI());
+
+        return ResponseEntity.status(status).body(err);
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationError> validation(MethodArgumentNotValidException e, HttpServletRequest request) {
+        
+        HttpStatus status = HttpStatus.BAD_REQUEST; 
+        ValidationError err = new ValidationError(Instant.now(), status.value(), "Validation Error", 
+                                                    "Falha na validação dos campos. Verifique a lista 'errors'.", request.getRequestURI());
+                                                
+        e.getBindingResult().getFieldErrors().forEach(f -> {
+            err.addError(f.getField(), f.getDefaultMessage());
+        });
 
         return ResponseEntity.status(status).body(err);
     }
