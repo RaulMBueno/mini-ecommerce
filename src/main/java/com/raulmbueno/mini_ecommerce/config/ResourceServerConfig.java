@@ -1,63 +1,55 @@
 package com.raulmbueno.mini_ecommerce.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
 public class ResourceServerConfig {
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private static final String[] PUBLIC_ROUTES_GET = { "/products/**", "/categories/**" };
+    private static final String[] ADMIN_ROUTES_POST = { "/products", "/categories" };
+    private static final String[] ADMIN_ROUTES_GENERAL = { "/products/**", "/categories/**" };
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-    
+
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = 
-            http.getSharedObject(AuthenticationManagerBuilder.class);
-        
-        authenticationManagerBuilder.userDetailsService(userDetailsService)
-                                    .passwordEncoder(passwordEncoder);
-        
-        return authenticationManagerBuilder.build();
+    @Profile("dev")
+    public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
+        http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.authorizeHttpRequests(auth -> auth
+            .requestMatchers("/h2-console/**").permitAll() // <-- Linha corrigida!
+            .requestMatchers(HttpMethod.GET, PUBLIC_ROUTES_GET).permitAll()
+            .requestMatchers(HttpMethod.POST, ADMIN_ROUTES_POST).hasRole("ADMIN")
+            .requestMatchers(HttpMethod.PUT, ADMIN_ROUTES_GENERAL).hasRole("ADMIN")
+            .requestMatchers(HttpMethod.DELETE, ADMIN_ROUTES_GENERAL).hasRole("ADMIN")
+            .anyRequest().authenticated()
+        );
+
+        return http.build();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Profile("prod")
+    public SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.csrf(AbstractHttpConfigurer::disable);
-        
-        http.httpBasic(Customizer.withDefaults()); 
-
-        http.authorizeHttpRequests(authorize -> authorize
-                
-                // Rotas que exigem ADMIN
-                .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.POST, "/categories").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
-                
-                // Rotas públicas (PermitAll)
-                .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/users").permitAll()
-
-                // Qualquer outra requisição deve ser autenticada 
-                .anyRequest().authenticated());
+        http.authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.GET, PUBLIC_ROUTES_GET).permitAll()
+            .requestMatchers(HttpMethod.POST, ADMIN_ROUTES_POST).hasRole("ADMIN")
+            .requestMatchers(HttpMethod.PUT, ADMIN_ROUTES_GENERAL).hasRole("ADMIN")
+            .requestMatchers(HttpMethod.DELETE, ADMIN_ROUTES_GENERAL).hasRole("ADMIN")
+            .anyRequest().authenticated()
+        );
 
         return http.build();
     }
