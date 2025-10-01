@@ -1,7 +1,6 @@
 package com.raulmbueno.mini_ecommerce.dtos;
 
 import com.raulmbueno.mini_ecommerce.entities.User;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size; 
 import lombok.Getter;
