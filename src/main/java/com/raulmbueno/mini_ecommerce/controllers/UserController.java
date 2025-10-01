@@ -33,14 +33,9 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDTO> insert(@Valid @RequestBody UserInsertDTO dto) {
-        // Chamamos o método do Service para inserir (que faz a criptografia)
         UserDTO newDto = service.insert(dto);
-
-        // Gera o URI do novo recurso (padrão REST 201 Created)
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(newDto.getId()).toUri();
-
-        // Retorna Status 201 Created com o DTO do novo usuário
         return ResponseEntity.created(uri).body(newDto);
     }
 }
