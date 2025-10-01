@@ -1,12 +1,16 @@
 package com.raulmbueno.mini_ecommerce.entities;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
+import org.springframework.security.core.GrantedAuthority;
 
 @Entity
 @Table(name = "tb_role")
@@ -14,16 +18,23 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Role implements Serializable {
+public class Role implements GrantedAuthority { 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String authority;
-        public Role(Long id, String authority) {
+    private String authority; 
+
+    public Role(Long id, String authority) {
         this.id = id;
         this.authority = authority;
+    }
+    
+    // MÉTODO OBRIGATÓRIO DA INTERFACE GrantedAuthority
+    @Override
+    public String getAuthority() {
+        return authority;
     }
 }
