@@ -34,11 +34,20 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         if (categoryRepository.count() == 0) { 
-            Category cat1 = new Category(null, "Eletrônicos");
-            Category cat2 = new Category(null, "Livros");
-            Category cat3 = new Category(null, "Computadores");
-            Category cat4 = new Category(null, "Smartphones");
-            Category cat5 = new Category(null, "Vestuário");
+            Category cat1 = new Category();
+            cat1.setName("Eletrônicos");
+
+            Category cat2 = new Category();
+            cat2.setName("Livros");
+
+            Category cat3 = new Category();
+            cat3.setName("Computadores");
+
+            Category cat4 = new Category();
+            cat4.setName("Celulares");
+
+            Category cat5 = new Category();
+            cat5.setName("Casa");
 
             categoryRepository.saveAll(Arrays.asList(cat1, cat2, cat3, cat4, cat5));
             System.out.println(">>> DatabaseSeeder: 5 Categorias inseridas com sucesso.");
