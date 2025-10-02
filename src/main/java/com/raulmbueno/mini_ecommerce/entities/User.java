@@ -1,11 +1,7 @@
 package com.raulmbueno.mini_ecommerce.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.EqualsAndHashCode;
-
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -13,11 +9,17 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Representa um usuário no sistema.
+ * Esta entidade integra-se com o Spring Security através da interface UserDetails,
+ * permitindo que seja usada diretamente nos processos de autenticação e autorização.
+ */
 @Entity
 @Table(name = "tb_user")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class User implements UserDetails {
     private static final long serialVersionUID = 1L;
@@ -27,36 +29,32 @@ public class User implements UserDetails {
     private Long id;
 
     private String name;
-    
+
     @Column(unique = true)
     private String email;
 
+    @ToString.Exclude
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "tb_user_role",
-               joinColumns = @JoinColumn(name = "user_id"),
-               inverseJoinColumns = @JoinColumn(name = "role_id"))
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User(Long id, String name, String email, String password) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.password = password;
-    }
-    
-    // MÉTODOS OBRIGATÓRIOS DA INTERFACE UserDetails
-    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles; 
+        return roles;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        // Usa o campo 'email' como o nome de usuário (login)
-        return email;
+        return this.email;
     }
 
     @Override
