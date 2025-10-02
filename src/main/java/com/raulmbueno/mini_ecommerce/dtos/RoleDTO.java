@@ -1,6 +1,6 @@
 package com.raulmbueno.mini_ecommerce.dtos;
 
-import com.raulmbueno.mini_ecommerce.entities.Client;
+import com.raulmbueno.mini_ecommerce.entities.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,16 +10,14 @@ import java.io.Serializable;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClientDTO implements Serializable {
+public class RoleDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private String name;
-    private String email;
+    private String authority;
 
-    public ClientDTO(Client entity) {
+    public RoleDTO(Role entity) {
         this.id = entity.getId();
-        this.name = entity.getName();
-        this.email = entity.getEmail();
+        this.authority = entity.getAuthority();
     }
 }

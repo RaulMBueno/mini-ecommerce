@@ -4,7 +4,6 @@ import com.raulmbueno.mini_ecommerce.dtos.UserDTO;
 import com.raulmbueno.mini_ecommerce.dtos.UserInsertDTO;
 import com.raulmbueno.mini_ecommerce.services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,8 +15,11 @@ import java.util.List;
 @RequestMapping(value = "/users")
 public class UserController {
 
-    @Autowired
-    private UserService service;
+    private final UserService service;
+
+    public UserController(UserService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> findAll() {
@@ -38,4 +40,22 @@ public class UserController {
                 .buildAndExpand(newDto.getId()).toUri();
         return ResponseEntity.created(uri).body(newDto);
     }
+    
+    // ATENÇÃO: Métodos de update e delete para usuários devem ser protegidos
+    // com segurança de autorização (ex: só um ADMIN pode deletar outro usuário).
+    // Faremos isso quando implementarmos a segurança de endpoints.
+    
+    /*
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserDTO dto) {
+        UserDTO newDto = service.update(id, dto);
+        return ResponseEntity.ok().body(newDto);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+    */
 }
