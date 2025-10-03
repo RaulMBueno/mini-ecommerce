@@ -2,63 +2,31 @@ package com.raulmbueno.mini_ecommerce.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Representa uma categoria de produtos.
+ * Uma categoria pode conter múltiplos produtos e um produto pode pertencer a múltiplas categorias.
+ */
 @Entity
 @Table(name = "tb_category")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id") 
     private Long id;
-    
+
     private String name;
 
-    @JsonIgnore 
+    @JsonIgnore
     @ManyToMany(mappedBy = "categories")
     private Set<Product> products = new HashSet<>();
-
-    public Category() {
-    }
-
-    public Category(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public Set<Product> getProducts() {
-        return products;
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Category category = (Category) o;
-        return Objects.equals(id, category.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

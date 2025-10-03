@@ -1,33 +1,54 @@
 package com.raulmbueno.mini_ecommerce.controllers;
 
-import com.raulmbueno.mini_ecommerce.entities.Client;
+import com.raulmbueno.mini_ecommerce.dtos.ClientDTO;
 import com.raulmbueno.mini_ecommerce.services.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping(value = "/clients")
 public class ClientController {
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
+
+    public ClientController(ClientService clientService) {
+        this.clientService = clientService;
+    }
 
     @GetMapping
-    public ResponseEntity<List<Client>> findAll() {
-        List<Client> list = clientService.findAll();
+    public ResponseEntity<List<ClientDTO>> findAll() {
+        List<ClientDTO> list = clientService.findAll();
         return ResponseEntity.ok().body(list);
     }
-    @PostMapping
-    public ResponseEntity<Client> insert(@RequestBody Client client) {
-    client = clientService.save(client);
-    return ResponseEntity.status(201).body(client);
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ClientDTO> findById(@PathVariable Long id) {
+        ClientDTO dto = clientService.findById(id);
+        return ResponseEntity.ok().body(dto);
     }
-    
+
+    @PostMapping
+    public ResponseEntity<ClientDTO> insert(@Valid @RequestBody ClientDTO dto) {
+        dto = clientService.insert(dto);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(dto.getId()).toUri();
+        return ResponseEntity.created(uri).body(dto);
+    }
+
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<ClientDTO> update(@PathVariable Long id, @Valid @RequestBody ClientDTO dto) {
+        dto = clientService.update(id, dto);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        clientService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

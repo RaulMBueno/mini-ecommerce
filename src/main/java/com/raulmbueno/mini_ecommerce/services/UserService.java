@@ -2,10 +2,11 @@ package com.raulmbueno.mini_ecommerce.services;
 
 import com.raulmbueno.mini_ecommerce.dtos.UserDTO;
 import com.raulmbueno.mini_ecommerce.dtos.UserInsertDTO;
+import com.raulmbueno.mini_ecommerce.entities.Role;
 import com.raulmbueno.mini_ecommerce.entities.User;
+import com.raulmbueno.mini_ecommerce.repositories.RoleRepository;
 import com.raulmbueno.mini_ecommerce.repositories.UserRepository;
 import com.raulmbueno.mini_ecommerce.services.exceptions.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,42 +15,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-    
-    // Implementação do método obrigatório pelo Spring Security
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-
-        if ("admin@ecommerce.com".equals(email)) {
-             return repository.findById(1L).orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
-        } else if ("client@ecommerce.com".equals(email)) {
-             return repository.findById(2L).orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
-        }
-        
-        throw new UsernameNotFoundException("Usuário não encontrado: " + email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + email));
     }
 
     @Transactional(readOnly = true)
     public List<UserDTO> findAll() {
-        List<User> list = repository.findAll();
+        List<User> list = userRepository.findAll();
         return list.stream().map(UserDTO::new).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public UserDTO findById(Long id) {
-        Optional<User> obj = repository.findById(id);
-        User entity = obj.orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. ID " + id));
+        User entity = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + id + " não encontrado"));
         return new UserDTO(entity);
     }
 
@@ -57,11 +54,14 @@ public class UserService implements UserDetailsService {
     public UserDTO insert(UserInsertDTO dto) {
         User entity = new User();
         copyDtoToEntity(dto, entity);
-        
-        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
-        
-        entity = repository.save(entity);
 
+        entity.getRoles().clear();
+        Role clientRole = roleRepository.findById(2L)
+                .orElseThrow(() -> new ResourceNotFoundException("Role de cliente não encontrada"));
+        entity.getRoles().add(clientRole);
+
+        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
+        entity = userRepository.save(entity);
         return new UserDTO(entity);
     }
 

@@ -2,7 +2,7 @@ package com.raulmbueno.mini_ecommerce.controllers;
 
 import com.raulmbueno.mini_ecommerce.dtos.CategoryDTO;
 import com.raulmbueno.mini_ecommerce.services.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -14,8 +14,11 @@ import java.util.List;
 @RequestMapping(value = "/categories")
 public class CategoryController {
 
-    @Autowired
-    private CategoryService service;
+    private final CategoryService service;
+
+    public CategoryController(CategoryService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<List<CategoryDTO>> findAll() {
@@ -30,17 +33,15 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> insert(@RequestBody CategoryDTO dto) {
+    public ResponseEntity<CategoryDTO> insert(@Valid @RequestBody CategoryDTO dto) {
         dto = service.insert(dto);
-        
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(dto.getId()).toUri();
-        
         return ResponseEntity.created(uri).body(dto);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<CategoryDTO> update(@PathVariable Long id, @RequestBody CategoryDTO dto) {
+    public ResponseEntity<CategoryDTO> update(@PathVariable Long id, @Valid @RequestBody CategoryDTO dto) {
         dto = service.update(id, dto);
         return ResponseEntity.ok(dto);
     }
@@ -48,7 +49,6 @@ public class CategoryController {
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
-        
         return ResponseEntity.noContent().build();
     }
 }

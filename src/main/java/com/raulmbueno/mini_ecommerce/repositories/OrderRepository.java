@@ -2,8 +2,12 @@ package com.raulmbueno.mini_ecommerce.repositories;
 
 import com.raulmbueno.mini_ecommerce.entities.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
 
-@Repository
+import java.util.Optional;
+
 public interface OrderRepository extends JpaRepository<Order, Long> {
+
+    @Query("SELECT obj FROM Order obj JOIN FETCH obj.items item JOIN FETCH item.id.product WHERE obj.id = :id")
+    Optional<Order> findOrderWithItemsById(Long id);
 }
