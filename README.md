@@ -1,76 +1,77 @@
 # Mini E-commerce API
 
-![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![H2 Database](https://img.shields.io/badge/H2-4479A1?style=for-the-badge&logo=h2)
+![Java](https://img.shields.io/badge/Java-21-blue?style=for-the-badge&logo=openjdk)
+![Spring](https://img.shields.io/badge/Spring_Boot-3.x-green?style=for-the-badge&logo=spring)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-blue?style=for-the-badge&logo=docker)
 
-Este é um projeto de API RESTful para um mini e-commerce, desenvolvido com Spring Boot. A aplicação gerencia produtos, clientes e pedidos, demonstrando as melhores práticas de desenvolvimento de backend, como arquitetura em camadas, injeção de dependência e DTOs.
+API RESTful para um sistema de e-commerce, desenvolvida com Java e Spring Boot. Este projeto demonstra a construção de um backend robusto, aplicando boas práticas de arquitetura de software, testes automatizados e integração com banco de dados relacional.
 
----
+## Sobre o Projeto
 
-### Visão Geral da Arquitetura
+O objetivo deste projeto é simular o backend de uma pequena loja virtual. A aplicação foi estruturada seguindo os princípios da arquitetura em camadas para garantir que o código seja limpo, organizado e de fácil manutenção, separando as responsabilidades de API, lógica de negócio e acesso a dados.
 
-A aplicação foi construída com uma arquitetura em camadas, seguindo o padrão MVC (Model-View-Controller) para backend.
+## Recursos Principais
 
-* **Controller**: Recebe as requisições HTTP e delega as operações para a camada de serviço.
-* **Service**: Contém a lógica de negócio principal, orquestrando as operações de dados.
-* **Repository**: Interage diretamente com o banco de dados usando Spring Data JPA, abstraindo a complexidade das consultas SQL.
-* **Entities**: Representam as tabelas do banco de dados, mapeadas pelo JPA.
-* **DTOs**: Objetos de transferência de dados que protegem as entidades e garantem que a API retorne apenas os dados necessários.
+-   **Gerenciamento de Produtos e Categorias:** Operações CRUD completas para produtos e categorias.
+-   **Sistema de Usuários e Clientes:** Estrutura para cadastro e gerenciamento de usuários.
+-   **Sistema de Pedidos:** Modelagem de pedidos, incluindo itens, preço histórico e status.
+-   **Estrutura de Segurança:** Base para autenticação e autorização com Spring Security.
+-   **Tratamento de Exceções:** Respostas de erro padronizadas para a API.
 
----
+## Tecnologias Utilizadas
 
-### Tecnologias Utilizadas
+-   **Linguagem:** Java 21
+-   **Framework:** Spring Boot 3
+-   **Persistência de Dados:**
+    -   Spring Data JPA (Hibernate)
+    -   PostgreSQL 16 (executado via Docker)
+-   **Versionamento de Banco de Dados:** Flyway
+-   **Testes:**
+    -   JUnit 5
+    -   Mockito
+-   **Build & Dependências:** Maven
 
-* **Java 17**: Linguagem de programação.
-* **Spring Boot**: Framework para o desenvolvimento da API.
-* **Spring Data JPA**: Abstração para a camada de persistência.
-* **H2 Database**: Banco de dados em memória para desenvolvimento e testes.
-* **Lombok**: Ferramenta para reduzir o código boilerplate (getters, setters, construtores).
-* **Git**: Sistema de controle de versão.
-* **Thunder Client**: Ferramenta para testar os endpoints da API.
+## Como Executar o Projeto
 
----
+Siga os passos abaixo para executar a aplicação em seu ambiente local.
 
-### Endpoints da API
+### Pré-requisitos
 
-A API expõe os seguintes endpoints REST para operações CRUD.
+-   JDK 21 ou superior
+-   Docker Desktop
+-   Maven (já incluído no projeto via `mvnw`)
+-   Um cliente de banco de dados (Ex: DBeaver, pgAdmin)
 
-**Clientes (`/clients`)**
-| Método | Endpoint | Descrição |
-| --- | --- | --- |
-| `POST` | `/clients` | Cria um novo cliente |
-| `GET` | `/clients` | Lista todos os clientes |
+### Passos
 
-**Produtos (`/products`)**
-| Método | Endpoint | Descrição |
-| --- | --- | --- |
-| `POST` | `/products` | Cria um novo produto |
-| `GET` | `/products` | Lista todos os produtos |
+1.  **Clone o repositório:**
+    ```bash
+    git clone [https://github.com/RaulMBueno/mini-ecommerce.git](https://github.com/RaulMBueno/mini-ecommerce.git)
+    cd mini-ecommerce
+    ```
 
-**Pedidos (`/orders`)**
-| Método | Endpoint | Descrição |
-| --- | --- | --- |
-| `POST` | `/orders` | Cria um novo pedido |
-| `GET` | `/orders` | Lista todos os pedidos |
+2.  **Inicie o banco de dados com Docker:**
+    * Certifique-se de que o Docker Desktop está em execução.
+    * No terminal, execute o comando para criar e iniciar o container do PostgreSQL:
+    ```bash
+    docker run --name mini-ecommerce-db -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=123456 -d postgres:16
+    ```
 
----
+3.  **Crie o banco de dados:**
+    * Conecte-se ao servidor PostgreSQL (em `localhost:5432`) usando seu cliente de banco de dados.
+    * Execute o seguinte comando SQL para criar o banco que a aplicação usará:
+    ```sql
+    CREATE DATABASE mini_ecommerce;
+    ```
 
-### Como Rodar a Aplicação
+4.  **Execute a aplicação:**
+    * Na pasta raiz do projeto, execute o comando Maven:
+    ```bash
+    .\mvnw spring-boot:run
+    ```
+    * O Flyway irá rodar automaticamente, criando todas as tabelas. A API estará disponível em `http://localhost:8080`.
 
-1.  Clone o repositório:
-    `git clone https://github.com/RaulMBueno/mini-ecommerce.git`
-2.  Navegue até o diretório do projeto:
-    `cd mini-ecommerce`
-3.  Execute a aplicação usando o Maven Wrapper:
-    `./mvnw spring-boot:run`
+## Boas Práticas e Padrões de Projeto Aplicados
 
-A aplicação será iniciada na porta 8080.
-
----
-
-### Contato
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/raul-martins-bueno-12a848222/)
-[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:raulmartinsbueno@gmail.com)
+-   **Arquitetura em Camadas:** Código organizado em `Controller`, `Service`, `Repository` e `Entity`
