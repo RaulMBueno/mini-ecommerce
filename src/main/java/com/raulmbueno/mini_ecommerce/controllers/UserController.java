@@ -5,6 +5,7 @@ import com.raulmbueno.mini_ecommerce.dtos.UserInsertDTO;
 import com.raulmbueno.mini_ecommerce.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -40,12 +41,8 @@ public class UserController {
                 .buildAndExpand(newDto.getId()).toUri();
         return ResponseEntity.created(uri).body(newDto);
     }
-    
-    // ATENÇÃO: Métodos de update e delete para usuários devem ser protegidos
-    // com segurança de autorização (ex: só um ADMIN pode deletar outro usuário).
-    // Faremos isso quando implementarmos a segurança de endpoints.
-    
-    /*
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(value = "/{id}")
     public ResponseEntity<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserDTO dto) {
         UserDTO newDto = service.update(id, dto);
@@ -57,5 +54,5 @@ public class UserController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
-    */
+
 }
