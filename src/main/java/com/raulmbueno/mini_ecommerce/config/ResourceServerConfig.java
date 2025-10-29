@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,23 +23,21 @@ public class ResourceServerConfig {
     private final SecurityFilter securityFilter;
 
     private static final String[] PUBLIC_ROUTES_GET = { "/products/**", "/categories/**" };
-
-    public ResourceServerConfig(SecurityFilter securityFilter) {
+    public ResourceServerConfig(SecurityFilter securityFilter, BCryptPasswordEncoder passwordEncoder) {
         this.securityFilter = securityFilter;
     }
 
-@Bean
+    @Bean
     @Profile("dev")
     public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
             .csrf(csrf -> csrf.disable())
-            // CORREÇÃO APLICADA ABAIXO
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // CORREÇÃO APLICADA ABAIXO
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTES_GET).permitAll()
                 .anyRequest().authenticated()
             )
@@ -51,18 +50,27 @@ public class ResourceServerConfig {
     public SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            // CORREÇÃO APLICADA ABAIXO
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTES_GET).permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+    /* 
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(UserService userService) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder); 
+        authProvider.setUserDetailsService(userService); 
+        return authProvider;
+    }
+    */
 }
