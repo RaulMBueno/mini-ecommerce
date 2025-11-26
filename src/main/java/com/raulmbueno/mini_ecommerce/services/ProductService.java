@@ -2,7 +2,7 @@ package com.raulmbueno.mini_ecommerce.services;
 
 import com.raulmbueno.mini_ecommerce.dtos.CategoryDTO;
 import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
-import com.raulmbueno.mini_ecommerce.entities.Category;
+import com.raulmbueno.mini_ecommerce.entities.Category; 
 import com.raulmbueno.mini_ecommerce.entities.Product;
 import com.raulmbueno.mini_ecommerce.repositories.CategoryRepository;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
@@ -84,9 +84,11 @@ public class ProductService {
         entity.setDescription(dto.getDescription());
         entity.setPrice(dto.getPrice());
         entity.setImgUrl(dto.getImgUrl());
+        entity.setType(dto.getType());
 
         entity.getCategories().clear();
         for (CategoryDTO catDto : dto.getCategories()) {
+            
             Category category = categoryRepository.getReferenceById(catDto.getId());
             entity.getCategories().add(category);
         }

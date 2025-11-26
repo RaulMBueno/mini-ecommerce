@@ -1,5 +1,7 @@
 package com.raulmbueno.mini_ecommerce.entities;
 
+import com.raulmbueno.mini_ecommerce.enums.ProductType;
+import com.raulmbueno.mini_ecommerce.entities.Category;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +30,9 @@ public class Product {
     private String description;
     private BigDecimal price;
     private String imgUrl;
+    
+    @Enumerated(EnumType.STRING)
+    private ProductType type;
 
     @ManyToMany
     @JoinTable(name = "tb_product_category",

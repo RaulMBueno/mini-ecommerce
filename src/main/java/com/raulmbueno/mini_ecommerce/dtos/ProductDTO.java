@@ -1,17 +1,21 @@
 package com.raulmbueno.mini_ecommerce.dtos;
 
 import com.raulmbueno.mini_ecommerce.entities.Product;
+import com.raulmbueno.mini_ecommerce.enums.ProductType;
+import com.raulmbueno.mini_ecommerce.entities.Category; 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ProductDTO {
 
@@ -29,6 +33,8 @@ public class ProductDTO {
     
     private String imgUrl;
 
+    private ProductType type;
+
     private final List<CategoryDTO> categories = new ArrayList<>();
 
     public ProductDTO(Product entity) {
@@ -37,10 +43,25 @@ public class ProductDTO {
         this.description = entity.getDescription();
         this.price = entity.getPrice();
         this.imgUrl = entity.getImgUrl();
+        this.type = entity.getType();
+
         entity.getCategories().forEach(cat -> this.categories.add(new CategoryDTO(cat)));
     }
 
-    // Nota: O construtor com todos os argumentos foi removido intencionalmente
-    // para que a criação do DTO seja feita a partir de uma entidade ou com setters,
-    // garantindo consistência, mas poderíamos adicioná-lo se necessário.
+    
+    public ProductType getType() {
+        return type;
+    }
+
+    public void setType(ProductType type) {
+        this.type = type;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
 }

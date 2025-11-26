@@ -52,19 +52,22 @@ public class ProductServiceTests {
     private ProductDTO productDTO;
     private Page<Product> page;
 
-    @BeforeEach
+@BeforeEach
     void setUp() {
         existingId = 1L;
         nonExistingId = 2L;
         dependentId = 3L;
 
         category = new Category(1L, "Eletrônicos", new HashSet<>()); 
-        product = new Product(existingId, "Smart TV", "Uma TV inteligente", new BigDecimal("2900.00"), "url-da-imagem", new HashSet<>(), new HashSet<>());
+        
+        product = new Product(existingId, "Smart TV", "Uma TV inteligente", new BigDecimal("2900.00"), "url-da-imagem", null, new HashSet<>(), new HashSet<>());
+        
         product.getCategories().add(category);
         
         productDTO = new ProductDTO(product);
         page = new PageImpl<>(List.of(product));
     }
+
 
     @Test
     @DisplayName("findAllPaged deve retornar uma página de ProductDTO")
