@@ -1,10 +1,8 @@
 package com.raulmbueno.mini_ecommerce.entities;
 
-import com.raulmbueno.mini_ecommerce.enums.ProductType;
-import com.raulmbueno.mini_ecommerce.entities.Category;
+import com.raulmbueno.mini_ecommerce.entities.enums.ProductType;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,11 +23,13 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
     private String description;
     private BigDecimal price;
     private String imgUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String affiliateUrl;
     
     @Enumerated(EnumType.STRING)
     private ProductType type;

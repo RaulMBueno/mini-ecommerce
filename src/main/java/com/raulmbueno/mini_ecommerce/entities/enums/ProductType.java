@@ -1,6 +1,7 @@
-package com.raulmbueno.mini_ecommerce.enums;
+package com.raulmbueno.mini_ecommerce.entities.enums;
 
 public enum ProductType {
     PHYSICAL,
-    DIGITAL
+    DIGITAL,
+    AFFILIATE;
 }

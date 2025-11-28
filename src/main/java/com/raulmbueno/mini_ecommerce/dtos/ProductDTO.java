@@ -1,8 +1,7 @@
 package com.raulmbueno.mini_ecommerce.dtos;
 
 import com.raulmbueno.mini_ecommerce.entities.Product;
-import com.raulmbueno.mini_ecommerce.enums.ProductType;
-import com.raulmbueno.mini_ecommerce.entities.Category; 
+import com.raulmbueno.mini_ecommerce.entities.enums.ProductType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -29,11 +28,11 @@ public class ProductDTO {
     private String description;
     
     @Positive(message = "O preço deve ser um valor positivo.")
-    private BigDecimal price;
-    
-    private String imgUrl;
 
+    private BigDecimal price;
+    private String imgUrl;
     private ProductType type;
+    private String affiliateUrl;
 
     private final List<CategoryDTO> categories = new ArrayList<>();
 
@@ -43,7 +42,9 @@ public class ProductDTO {
         this.description = entity.getDescription();
         this.price = entity.getPrice();
         this.imgUrl = entity.getImgUrl();
+        this.affiliateUrl = entity.getAffiliateUrl();
         this.type = entity.getType();
+        
 
         entity.getCategories().forEach(cat -> this.categories.add(new CategoryDTO(cat)));
     }

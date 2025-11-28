@@ -1,0 +1,1 @@
+ALTER TABLE tb_product ADD COLUMN affiliate_url TEXT;
