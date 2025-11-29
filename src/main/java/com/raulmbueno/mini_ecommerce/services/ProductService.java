@@ -84,6 +84,7 @@ public class ProductService {
         entity.setDescription(dto.getDescription());
         entity.setPrice(dto.getPrice());
         entity.setImgUrl(dto.getImgUrl());
+        entity.setAffiliateUrl(dto.getAffiliateUrl());
         entity.setType(dto.getType());
 
         entity.getCategories().clear();
