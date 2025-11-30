@@ -27,17 +27,33 @@ public class AuthenticationController {
         this.tokenService = tokenService;
         
     }
+    
 @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.getEmail(), data.getPassword());
-        var auth = this.authenticationManager.authenticate(usernamePassword);
+    public ResponseEntity login(@RequestBody @Valid LoginRequestDTO data) {
+        System.out.println("--- TENTATIVA DE LOGIN ---");
+        System.out.println("Email recebido: " + data.getEmail());
+        
+        try {
+            // 1. Cria o token com os dados recebidos (ainda não autenticado)
+            var usernamePassword = new UsernamePasswordAuthenticationToken(data.getEmail(), data.getPassword());
+            
+            // 2. Tenta bater no banco e verificar a senha
+            var auth = this.authenticationManager.authenticate(usernamePassword);
+            
+            System.out.println("Login com sucesso! Gerando token...");
 
-        var token = tokenService.generateToken((User) auth.getPrincipal());
+            // 3. Gera o Token (Pulseira)
+            var token = tokenService.generateToken((User) auth.getPrincipal());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+            return ResponseEntity.ok(new LoginResponseDTO(token));
+            
+        } catch (Exception e) {
+            // --- AQUI ESTÁ O DIAGNÓSTICO ---
+            System.out.println("ERRO GRAVE NO LOGIN:");
+            e.printStackTrace(); // Imprime o erro detalhado no terminal
+            return ResponseEntity.internalServerError().body("Erro no servidor: " + e.getMessage());
+        }
     }
-
-
 
 
 }

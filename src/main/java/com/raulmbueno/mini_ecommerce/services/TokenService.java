@@ -1,19 +1,16 @@
 package com.raulmbueno.mini_ecommerce.services;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.raulmbueno.mini_ecommerce.config.security.SecurityProperties;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.raulmbueno.mini_ecommerce.entities.User;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 public class TokenService {
@@ -24,32 +21,37 @@ public class TokenService {
         this.securityProperties = securityProperties;
     }
 
-    public String generateToken(UserDetails userDetails) {
-        SecretKey key = Keys.hmacShaKeyFor(securityProperties.getSecret().getBytes(StandardCharsets.UTF_8));
-
-        Instant now = Instant.now();
-        Instant expiration = now.plus(securityProperties.getExpirationHours(), ChronoUnit.HOURS);
-
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiration))
-                .signWith(key)
-                .compact();
+    public String generateToken(User user) {
+        try {
+            // Usa a chave secreta das propriedades
+            Algorithm algorithm = Algorithm.HMAC256(securityProperties.getSecret());
+            
+            return JWT.create()
+                    .withIssuer("mini-ecommerce")
+                    .withSubject(user.getEmail())
+                    .withExpiresAt(genExpirationDate())
+                    .sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Erro ao gerar token", exception);
+        }
     }
 
     public String validateToken(String token) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(securityProperties.getSecret().getBytes(StandardCharsets.UTF_8));
-
-            Jws<Claims> claimsJws = Jwts.parser()
-                    .verifyWith(key)
+            Algorithm algorithm = Algorithm.HMAC256(securityProperties.getSecret());
+            return JWT.require(algorithm)
+                    .withIssuer("mini-ecommerce")
                     .build()
-                    .parseSignedClaims(token);
-
-            return claimsJws.getPayload().getSubject();
-        } catch (JwtException e) {
-            return null;
+                    .verify(token)
+                    .getSubject();
+        } catch (JWTVerificationException exception) {
+            return "";
         }
+    }
+
+    private Instant genExpirationDate() {
+        return LocalDateTime.now()
+                .plusHours(securityProperties.getExpirationHours())
+                .toInstant(ZoneOffset.of("-03:00"));
     }
 }

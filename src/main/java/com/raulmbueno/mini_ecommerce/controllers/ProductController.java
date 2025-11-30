@@ -34,11 +34,21 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> insert(@Valid @RequestBody ProductDTO dto) {
-        dto = service.insert(dto);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(dto.getId()).toUri();
-        return ResponseEntity.created(uri).body(dto);
+    public ResponseEntity<ProductDTO> insert(@RequestBody ProductDTO dto) {
+        System.out.println("--- TENTANDO CADASTRAR PRODUTO ---");
+        System.out.println("Nome: " + dto.getName());
+        
+        try {
+            dto = service.insert(dto);
+            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                    .buildAndExpand(dto.getId()).toUri();
+            return ResponseEntity.created(uri).body(dto);
+            
+        } catch (Exception e) {
+            System.out.println("ERRO AO SALVAR PRODUTO:");
+            e.printStackTrace(); // <--- VAI MOSTRAR O ERRO REAL
+            throw e; // Lança o erro de volta pro Spring tratar
+        }
     }
 
     @PutMapping(value = "/{id}")
