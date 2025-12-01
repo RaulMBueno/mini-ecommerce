@@ -44,7 +44,10 @@ public class ProductDTO {
         this.imgUrl = entity.getImgUrl();
         this.affiliateUrl = entity.getAffiliateUrl();
         this.type = entity.getType();
+        this.affiliateUrl = entity.getAffiliateUrl();
+        this.type = entity.getType();
         
+        this.isFeatured = entity.getIsFeatured(); // NOVO
 
         entity.getCategories().forEach(cat -> this.categories.add(new CategoryDTO(cat)));
     }
@@ -65,4 +68,7 @@ public class ProductDTO {
     public void setImgUrl(String imgUrl) {
         this.imgUrl = imgUrl;
     }
+    // ... outros campos
+    private Boolean isFeatured;
+
 }

@@ -34,6 +34,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductType type;
 
+    private Boolean isFeatured;
+
     @ManyToMany
     @JoinTable(name = "tb_product_category",
             joinColumns = @JoinColumn(name = "product_id"),
