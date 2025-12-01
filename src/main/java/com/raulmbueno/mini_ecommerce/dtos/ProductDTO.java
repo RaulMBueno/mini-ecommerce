@@ -20,11 +20,11 @@ public class ProductDTO {
 
     private Long id;
 
-    @Size(min = 3, max = 80, message = "O nome precisa ter entre 3 e 80 caracteres")
-    @NotBlank(message = "O nome do produto não pode ser vazio.")
+    @Size(min = 3, max = 255, message = "Nome deve ter entre 3 e 255 caracteres")
+    @NotBlank(message = "Campo requerido")
     private String name;
-    
-    @NotBlank(message = "A descrição não pode ser vazia.")
+
+    @Size(min = 10, message = "Descrição precisa ter pelo menos 10 letras")
     private String description;
     
     @Positive(message = "O preço deve ser um valor positivo.")
