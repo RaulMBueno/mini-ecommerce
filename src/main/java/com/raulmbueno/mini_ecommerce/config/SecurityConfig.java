@@ -62,12 +62,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // LISTA DE QUEM PODE ENTRAR:
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173", // Seu PC
-            "https://mini-ecommerce-web-eight.vercel.app", // <--- SEU LINK REAL DA VERCEL
-            "https://remakeupstore.up.railway.app" // O próprio Railway
-        ));
+        // A MUDANÇA NUCLEAR: Asterisco libera tudo (Vercel, Localhost, Celular...)
+        configuration.addAllowedOriginPattern("*"); 
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
