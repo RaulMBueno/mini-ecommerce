@@ -9,7 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer; // Importante
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,14 +38,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            .cors(Customizer.withDefaults()) // <--- Mudança chave: Usa o Bean corsConfigurationSource automaticamente
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Libera Preflight
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Libera perguntas do navegador
+                .requestMatchers("/auth/**").permitAll() // Libera login
+                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**").permitAll() // Libera vitrine
+                .anyRequest().authenticated() // Bloqueia o resto (Cadastro/Delete)
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
             
@@ -55,8 +55,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // LIBERA GERAL DE FORMA AGRESSIVA PARA FUNCIONAR
-        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Use setAllowedOriginPatterns em vez de setAllowedOrigins para aceitar * com credenciais
+        
+        // --- AQUI ESTÁ A MUDANÇA CRÍTICA ---
+        // Usamos 'Pattern' com '*' para aceitar qualquer origem (Vercel, Local, Celular)
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
+        // -----------------------------------
+        
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
