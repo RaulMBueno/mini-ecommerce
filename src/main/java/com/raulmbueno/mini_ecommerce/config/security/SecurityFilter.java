@@ -29,18 +29,32 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
-
+        
         if (token != null) {
-            var subject = tokenService.validateToken(token);
-            if (subject != null && !subject.isEmpty()) {
-                UserDetails userDetails = userRepository.findByEmail(subject).orElse(null);
+            System.out.println("--- FILTRO: TOKEN ENCONTRADO ---");
+            var login = tokenService.validateToken(token);
 
-                if (userDetails != null) {
-                    var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            if (login != null && !login.isEmpty()) {
+                System.out.println("--- FILTRO: TOKEN VÁLIDO PARA: " + login);
+                UserDetails user = userRepository.findByEmail(login).orElse(null);
+
+                if (user != null) {
+                    System.out.println("--- FILTRO: USUÁRIO ENCONTRADO NO BANCO. LIBERANDO... ---");
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    System.out.println("--- FILTRO: USUÁRIO NÃO ENCONTRADO NO BANCO ---");
                 }
+            } else {
+                System.out.println("--- FILTRO: TOKEN INVÁLIDO OU EXPIRADO ---");
+            }
+        } else {
+            // Apenas imprime se não for rota pública (pra não poluir muito)
+            if (!request.getRequestURI().contains("/auth") && !request.getRequestURI().contains("/products")) {
+                 System.out.println("--- FILTRO: NENHUM TOKEN NO CABEÇALHO ---");
             }
         }
+        
         filterChain.doFilter(request, response);
     }
 

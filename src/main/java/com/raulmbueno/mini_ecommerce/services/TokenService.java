@@ -49,9 +49,8 @@ public class TokenService {
         }
     }
 
-    private Instant genExpirationDate() {
-        return LocalDateTime.now()
-                .plusHours(securityProperties.getExpirationHours())
-                .toInstant(ZoneOffset.of("-03:00"));
+        private Instant genExpirationDate() {
+        // Usa o horário padrão do servidor (UTC) + 2 horas. Infalível.
+        return Instant.now().plusSeconds(7200); 
     }
 }
