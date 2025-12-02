@@ -9,8 +9,6 @@ import com.raulmbueno.mini_ecommerce.entities.User;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Service
 public class TokenService {
@@ -23,9 +21,7 @@ public class TokenService {
 
     public String generateToken(User user) {
         try {
-            // Usa a chave secreta das propriedades
             Algorithm algorithm = Algorithm.HMAC256(securityProperties.getSecret());
-            
             return JWT.create()
                     .withIssuer("mini-ecommerce")
                     .withSubject(user.getEmail())
@@ -49,8 +45,8 @@ public class TokenService {
         }
     }
 
-        private Instant genExpirationDate() {
-        // Usa o horário padrão do servidor (UTC) + 2 horas. Infalível.
-        return Instant.now().plusSeconds(7200); 
+    private Instant genExpirationDate() {
+        // 2 horas de validade a partir de AGORA (UTC)
+        return Instant.now().plusSeconds(7200);
     }
 }
