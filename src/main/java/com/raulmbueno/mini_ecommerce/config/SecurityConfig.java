@@ -61,8 +61,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Libera para o seu domínio na Vercel e Localhost
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://remakeup-store.vercel.app", "https://remakeupstore.up.railway.app"));
+        
+        // LISTA DE QUEM PODE ENTRAR:
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173", // Seu PC
+            "https://mini-ecommerce-web-eight.vercel.app", // <--- SEU LINK REAL DA VERCEL
+            "https://remakeupstore.up.railway.app" // O próprio Railway
+        ));
+        
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
