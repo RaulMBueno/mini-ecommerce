@@ -26,6 +26,7 @@ public class Product {
     private String name;
     private String description;
     private BigDecimal price;
+    @Column(columnDefinition = "TEXT")
     private String imgUrl;
 
     @Column(columnDefinition = "TEXT")

@@ -32,11 +32,11 @@ public class TestConfig implements CommandLineRunner {
         // --- ATENÇÃO: COMENTEI A TRAVA PARA FORÇAR A ATUALIZAÇÃO DOS CARGOS ---
         // Se deixarmos isso ativo agora, o Java vai ver o usuário antigo (sem cargo)
         // e não vai corrigir. Precisamos rodar sem isso uma vez.
-        
+        /*
         if (userRepository.count() > 0) {
              return; 
         }
-        
+        */
         // ---------------------------------------------------------------------
 
         // 1. Limpeza (Ordem importa para não dar erro de chave estrangeira)
