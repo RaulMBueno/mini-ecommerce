@@ -1,6 +1,6 @@
 package com.raulmbueno.mini_ecommerce.config;
 
-import com.raulmbueno.mini_ecommerce.config.security.SecurityFilter; // NOVO IMPORT
+import com.raulmbueno.mini_ecommerce.config.security.SecurityFilter;
 import com.raulmbueno.mini_ecommerce.services.AuthorizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,11 +12,11 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy; // NOVO IMPORT
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // NOVO IMPORT
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,7 +31,7 @@ public class SecurityConfig {
     private AuthorizationService authorizationService;
 
     @Autowired
-    private SecurityFilter securityFilter; // 1. INJETAMOS O FILTRO AQUI
+    private SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,19 +39,20 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            
-            // 2. IMPORTANTE: API REST não deve guardar sessão (cookies), deve ser Stateless
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
             .authorizeHttpRequests(auth -> auth
+                // Rotas Públicas
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+                
+                // Rota de "Preflight" do CORS (Importante para evitar 403 no navegador)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Todo o resto exige login
                 .anyRequest().authenticated()
             )
-            
-            // 3. O PULO DO GATO: Colocamos nosso filtro para rodar antes do filtro padrão
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
             
         return http.build();
@@ -60,11 +61,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Libera geral para o deploy inicial (depois fechamos para a URL do Vercel)
-        configuration.setAllowedOrigins(Arrays.asList("*")); 
+        // Libera para o seu domínio na Vercel e Localhost
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://remakeup-store.vercel.app", "https://remakeupstore.up.railway.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        // configuration.setAllowCredentials(true); // Com "*" (asterisco), isso deve ficar comentado
+        configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
