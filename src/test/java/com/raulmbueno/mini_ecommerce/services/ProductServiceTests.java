@@ -60,7 +60,18 @@ public class ProductServiceTests {
 
         category = new Category(1L, "Eletrônicos", new HashSet<>()); 
         
-        product = new Product(existingId, "Smart TV", "Uma TV inteligente", new BigDecimal("2900.00"), "url-da-imagem", null, null, null, new HashSet<>(), new HashSet<>());
+            product = new Product(
+            existingId, 
+            "Smart TV", 
+            "Uma TV inteligente", 
+            new BigDecimal("2900.00"), 
+            "url-da-imagem", 
+            null, 
+            com.raulmbueno.mini_ecommerce.entities.enums.ProductType.PHYSICAL, 
+            false, // <--- ADICIONE ESTE 'false' AQUI (É o isFeatured)
+            new HashSet<>(), 
+            new HashSet<>()
+        );
         
         product.getCategories().add(category);
         
