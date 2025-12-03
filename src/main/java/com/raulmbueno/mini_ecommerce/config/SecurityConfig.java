@@ -56,10 +56,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // --- AQUI ESTÁ A MUDANÇA CRÍTICA ---
-        // Usamos 'Pattern' com '*' para aceitar qualquer origem (Vercel, Local, Celular)
+
         configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
-        // -----------------------------------
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
