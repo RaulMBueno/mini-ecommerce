@@ -12,11 +12,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(SecurityFilter.class);
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
@@ -27,42 +31,57 @@ public class SecurityFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recoverToken(request);
-        
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        String token = recoverToken(request);
+
         if (token != null) {
-            System.out.println("--- FILTRO: TOKEN ENCONTRADO ---");
-            var login = tokenService.validateToken(token);
+            logger.debug("Filtro de segurança: token encontrado no cabeçalho Authorization");
+
+            String login = tokenService.validateToken(token);
 
             if (login != null && !login.isEmpty()) {
-                System.out.println("--- FILTRO: TOKEN VÁLIDO PARA: " + login);
+                logger.debug("Filtro de segurança: token válido para o usuário {}", login);
+
                 UserDetails user = userRepository.findByEmail(login).orElse(null);
 
                 if (user != null) {
-                    System.out.println("--- FILTRO: USUÁRIO ENCONTRADO NO BANCO. LIBERANDO... ---");
-                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    logger.info("Filtro de segurança: usuário {} autenticado com sucesso", login);
+
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            user.getAuthorities()
+                    );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } else {
-                    System.out.println("--- FILTRO: USUÁRIO NÃO ENCONTRADO NO BANCO ---");
+                    logger.warn("Filtro de segurança: usuário {} não encontrado no banco de dados", login);
                 }
+
             } else {
-                System.out.println("--- FILTRO: TOKEN INVÁLIDO OU EXPIRADO ---");
+                logger.warn("Filtro de segurança: token inválido ou expirado");
             }
+
         } else {
-            // Apenas imprime se não for rota pública (pra não poluir muito)
-            if (!request.getRequestURI().contains("/auth") && !request.getRequestURI().contains("/products")) {
-                 System.out.println("--- FILTRO: NENHUM TOKEN NO CABEÇALHO ---");
+            String path = request.getRequestURI();
+            // Só loga ausência de token em rotas que deveriam ser protegidas
+            if (!path.startsWith("/auth") && !path.startsWith("/products")) {
+                logger.debug("Filtro de segurança: nenhuma credencial enviada para a rota protegida {}", path);
             }
         }
-        
+
         filterChain.doFilter(request, response);
     }
 
     private String recoverToken(HttpServletRequest request) {
-        var authHeader = request.getHeader("Authorization");
-        if (authHeader == null) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || authHeader.isBlank()) {
             return null;
         }
-        return authHeader.replace("Bearer ", "");
+        return authHeader.replace("Bearer ", "").trim();
     }
 }
