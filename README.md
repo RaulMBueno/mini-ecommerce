@@ -75,3 +75,13 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
 ## Boas Práticas e Padrões de Projeto Aplicados
 
 -   **Arquitetura em Camadas:** Código organizado em `Controller`, `Service`, `Repository` e `Entity`
+
+## 🌐 Ambientes
+
+### Local (desenvolvimento)
+- URL base: http://localhost:8080
+- Descrição: ambiente usado para desenvolver e testar novas funcionalidades na máquina local, antes de enviar para a nuvem.
+
+### Produção
+- URL base: https://mini-ecommerce-production-c2d9.up.railway.app
+- Descrição: backend em produção, hospedado na Railway. Este ambiente é consumido pelo frontend do Makeup E-commerce publicado na Vercel.
