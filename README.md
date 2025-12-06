@@ -5,11 +5,11 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-blue?style=for-the-badge&logo=docker)
 
-API RESTful para um sistema de e-commerce, desenvolvida com Java e Spring Boot. Este projeto demonstra a construção de um backend robusto, aplicando boas práticas de arquitetura de software, testes automatizados e integração com banco de dados relacional.
+API RESTful para um sistema de e-commerce de produtos de beleza/maquiagem, desenvolvida com Java e Spring Boot. Este projeto começou como um backend de estudo para uma pequena loja virtual e hoje é utilizado em produção, aplicando boas práticas de arquitetura de software, testes automatizados e integração com banco de dados relacional.
 
 ## Sobre o Projeto
 
-O objetivo deste projeto é simular o backend de uma pequena loja virtual. A aplicação foi estruturada seguindo os princípios da arquitetura em camadas para garantir que o código seja limpo, organizado e de fácil manutenção, separando as responsabilidades de API, lógica de negócio e acesso a dados.
+O objetivo deste projeto é fornecer um backend robusto para uma loja virtual de produtos de beleza/maquiagem, com base preparada para diferentes tipos de produto (físicos, via link de afiliado e produtos digitais no futuro). A aplicação foi estruturada seguindo os princípios da arquitetura em camadas para garantir que o código seja limpo, organizado e de fácil manutenção, separando as responsabilidades de API, lógica de negócio e acesso a dados.
 
 ## Recursos Principais
 
