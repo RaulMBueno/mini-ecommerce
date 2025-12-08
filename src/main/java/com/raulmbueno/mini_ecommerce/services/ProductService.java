@@ -87,6 +87,7 @@ public class ProductService {
         entity.setAffiliateUrl(dto.getAffiliateUrl());
         entity.setType(dto.getType());
         entity.setIsFeatured(dto.getIsFeatured());
+        entity.setBrand(dto.getBrand());
 
         entity.getCategories().clear();
         for (CategoryDTO catDto : dto.getCategories()) {

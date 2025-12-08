@@ -2,7 +2,6 @@ package com.raulmbueno.mini_ecommerce.config;
 
 import com.raulmbueno.mini_ecommerce.config.security.SecurityFilter;
 import com.raulmbueno.mini_ecommerce.services.AuthorizationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,41 +27,73 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private AuthorizationService authorizationService;
+    private final AuthorizationService authorizationService;
+    private final SecurityFilter securityFilter;
 
-    @Autowired
-    private SecurityFilter securityFilter;
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Libera perguntas do navegador
-                .requestMatchers("/auth/**").permitAll() // Libera login
-                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**").permitAll() // Libera vitrine
-                .anyRequest().authenticated() // Bloqueia o resto (Cadastro/Delete)
-            )
-            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-            
-        return http.build();
+    public SecurityConfig(AuthorizationService authorizationService, SecurityFilter securityFilter) {
+        this.authorizationService = authorizationService;
+        this.securityFilter = securityFilter;
     }
 
     @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+            // Libera uso em iframe (H2, etc, se usar)
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            // CORS
+            .cors(Customizer.withDefaults())
+            // Sem CSRF (API stateless)
+            .csrf(csrf -> csrf.disable())
+            // JWT = stateless
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // AUTORIZAÇÃO
+            .authorizeHttpRequests(auth -> auth
+                // Pré-flight (CORS)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Login / refresh / etc
+                .requestMatchers("/auth/**").permitAll()
+
+                // Vitrine pública (GET liberado)
+                .requestMatchers(HttpMethod.GET,
+                        "/products/**",
+                        "/categories/**",
+                        "/brands/**"
+                ).permitAll()
+
+                // ---- AQUI ESTÁ A MUDANÇA: brands protegidas para escrita ----
+                .requestMatchers(HttpMethod.POST, "/brands/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/brands/**").authenticated()
+                // -------------------------------------------------------------
+
+                // Endpoints protegidos (cadastros, deletes etc. de product/category)
+                .requestMatchers(HttpMethod.POST, "/products/**").authenticated()
+                .requestMatchers(HttpMethod.PUT,  "/products/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/products/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/categories/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/categories/**").authenticated()
+
+                // Todo resto por enquanto fica liberado (se quiser depois trocamos pra authenticated)
+                .anyRequest().permitAll()
+            )
+            // Filtro JWT antes do UsernamePasswordAuthenticationFilter
+            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    // CORS liberado pra localhost:5173 (e outros)
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
 
-        configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
-        
+        // Em dev, pode deixar tudo liberado
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

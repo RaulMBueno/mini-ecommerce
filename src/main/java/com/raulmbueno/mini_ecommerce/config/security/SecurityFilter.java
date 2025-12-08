@@ -6,14 +6,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -37,51 +37,43 @@ public class SecurityFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String token = recoverToken(request);
+        String authHeader = request.getHeader("Authorization");
 
-        if (token != null) {
-            logger.debug("Filtro de segurança: token encontrado no cabeçalho Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.replace("Bearer ", "").trim();
 
-            String login = tokenService.validateToken(token);
+            try {
+                String login = tokenService.validateToken(token); // retorna o e-mail ou null
 
-            if (login != null && !login.isEmpty()) {
-                logger.debug("Filtro de segurança: token válido para o usuário {}", login);
+                if (login != null && !login.isBlank()
+                        && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                UserDetails user = userRepository.findByEmail(login).orElse(null);
+                    UserDetails user = userRepository.findByEmail(login).orElse(null);
 
-                if (user != null) {
-                    logger.info("Filtro de segurança: usuário {} autenticado com sucesso", login);
+                    if (user != null) {
+                        logger.info("Filtro de segurança: usuário {} autenticado com sucesso", login);
 
-                    var authentication = new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            user.getAuthorities()
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                } else {
-                    logger.warn("Filtro de segurança: usuário {} não encontrado no banco de dados", login);
+                        var authentication = new UsernamePasswordAuthenticationToken(
+                                user,
+                                null,
+                                user.getAuthorities()
+                        );
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } else {
+                        logger.warn("Filtro de segurança: usuário {} não encontrado no banco de dados", login);
+                    }
                 }
-
-            } else {
-                logger.warn("Filtro de segurança: token inválido ou expirado");
+            } catch (Exception e) {
+                logger.warn("Filtro de segurança: erro ao validar token", e);
+                // NÃO seta status aqui. Deixa o fluxo continuar sem usuário autenticado.
             }
 
         } else {
-            String path = request.getRequestURI();
-            // Só loga ausência de token em rotas que deveriam ser protegidas
-            if (!path.startsWith("/auth") && !path.startsWith("/products")) {
-                logger.debug("Filtro de segurança: nenhuma credencial enviada para a rota protegida {}", path);
-            }
+            // Só loga se quiser, mas não bloqueia nada
+            logger.debug("Filtro de segurança: requisição sem token para {}", request.getRequestURI());
         }
 
+        // MUITO IMPORTANTE: nunca devolve 403 aqui. Sempre deixa a requisição seguir.
         filterChain.doFilter(request, response);
-    }
-
-    private String recoverToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || authHeader.isBlank()) {
-            return null;
-        }
-        return authHeader.replace("Bearer ", "").trim();
     }
 }

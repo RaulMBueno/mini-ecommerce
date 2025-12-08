@@ -1,0 +1,2 @@
+ALTER TABLE tb_product
+ADD COLUMN brand VARCHAR(255);

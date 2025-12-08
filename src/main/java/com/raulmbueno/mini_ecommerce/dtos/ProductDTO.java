@@ -26,14 +26,24 @@ public class ProductDTO {
 
     @Size(min = 10, message = "Descrição precisa ter pelo menos 10 letras")
     private String description;
-    
-    @Positive(message = "O preço deve ser um valor positivo.")
 
+    @Positive(message = "O preço deve ser um valor positivo.")
     private BigDecimal price;
+
     private String imgUrl;
+
+    // 👉 NOVO CAMPO: marca do produto
+    @Size(max = 255, message = "Marca deve ter no máximo 255 caracteres")
+    private String brand;
+
     private ProductType type;
+
     private String affiliateUrl;
 
+    // Destaque na vitrine
+    private Boolean isFeatured;
+
+    // Categorias associadas
     private final List<CategoryDTO> categories = new ArrayList<>();
 
     public ProductDTO(Product entity) {
@@ -42,33 +52,11 @@ public class ProductDTO {
         this.description = entity.getDescription();
         this.price = entity.getPrice();
         this.imgUrl = entity.getImgUrl();
+        this.brand = entity.getBrand();          // 👈 mapeia marca do entity
         this.affiliateUrl = entity.getAffiliateUrl();
         this.type = entity.getType();
-        this.affiliateUrl = entity.getAffiliateUrl();
-        this.type = entity.getType();
-        
-        this.isFeatured = entity.getIsFeatured(); // NOVO
+        this.isFeatured = entity.getIsFeatured();
 
         entity.getCategories().forEach(cat -> this.categories.add(new CategoryDTO(cat)));
     }
-
-    
-    public ProductType getType() {
-        return type;
-    }
-
-    public void setType(ProductType type) {
-        this.type = type;
-    }
-
-    public String getImgUrl() {
-        return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
-    }
-    // ... outros campos
-    private Boolean isFeatured;
-
 }

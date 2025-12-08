@@ -31,6 +31,9 @@ public class ProductInsertDTO implements Serializable {
     @Positive(message = "O preço deve ser um valor positivo.")
     private BigDecimal price; 
     private String imgUrl;
+    @Size(max = 255, message = "A marca deve ter no máximo 255 caracteres.")
+    private String brand;
+
 
     private Set<Long> categoryIds = new HashSet<>();
 
