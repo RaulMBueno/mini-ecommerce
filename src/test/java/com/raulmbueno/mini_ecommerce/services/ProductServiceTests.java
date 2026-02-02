@@ -88,7 +88,7 @@ public class ProductServiceTests {
         when(productRepository.findAll(pageable)).thenReturn(page);
 
         // Act
-        Page<ProductDTO> result = service.findAllPaged(pageable);
+        Page<ProductDTO> result = service.findAllPaged("", pageable);
 
         // Assert
         Assertions.assertNotNull(result);
