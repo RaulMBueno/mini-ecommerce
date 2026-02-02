@@ -36,8 +36,13 @@ public class ProductService {
     }
     
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAllPaged(Pageable pageable) {
-        Page<Product> list = productRepository.findAll(pageable);
+    public Page<ProductDTO> findAllPaged(String search, Pageable pageable) {
+        Page<Product> list;
+        if (search == null || search.trim().isEmpty()) {
+            list = productRepository.findAll(pageable);
+        } else {
+            list = productRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+        }
         return list.map(ProductDTO::new);
     }
 
