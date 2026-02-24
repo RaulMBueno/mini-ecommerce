@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,6 +48,20 @@ public class Product {
 
     private Boolean isFeatured;
 
+    /** Prioridade na home (maior = aparece primeiro). Default 0. */
+    @Column(name = "home_priority", nullable = false)
+    private Integer homePriority = 0;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    public void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
     @ManyToMany
     @JoinTable(
             name = "tb_product_category",
@@ -86,6 +101,8 @@ public class Product {
         this.affiliateUrl = affiliateUrl;
         this.type = type;
         this.isFeatured = isFeatured;
+        this.homePriority = 0;
+        this.createdAt = Instant.now();
 
         if (categories != null) {
             this.categories = categories;

@@ -86,7 +86,7 @@ public class ProductServiceTests {
     public void findAllPagedShouldReturnPageOfProductDTO() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
-        when(productRepository.findAll(pageable)).thenReturn(page);
+        when(productRepository.findAll(any(Pageable.class))).thenReturn(page);
 
         // Act
         Page<ProductDTO> result = service.findAllPaged("", pageable);
@@ -94,7 +94,7 @@ public class ProductServiceTests {
         // Assert
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getSize());
-        verify(productRepository, times(1)).findAll(pageable);
+        verify(productRepository, times(1)).findAll(any(Pageable.class));
     }
 
     @Test

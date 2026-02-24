@@ -12,6 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +41,20 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductDTO> findAllPaged(String search, Pageable pageable) {
         Page<Product> list;
+        Sort baseSort = Sort.by(Sort.Direction.DESC, "homePriority");
+        Sort dateSort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Sort idSort = Sort.by(Sort.Direction.DESC, "id");
+        Sort requestedSort = pageable.getSort().isSorted() ? pageable.getSort() : Sort.unsorted();
+        Sort finalSort = baseSort.and(requestedSort).and(dateSort).and(idSort);
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                finalSort
+        );
         if (search == null || search.trim().isEmpty()) {
-            list = productRepository.findAll(pageable);
+            list = productRepository.findAll(sortedPageable);
         } else {
-            list = productRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+            list = productRepository.findByNameContainingIgnoreCase(search.trim(), sortedPageable);
         }
         return list.map(ProductDTO::new);
     }
@@ -94,6 +106,7 @@ public class ProductService {
         entity.setType(dto.getType());
         entity.setIsFeatured(dto.getIsFeatured());
         entity.setBrand(dto.getBrand());
+        entity.setHomePriority(dto.getHomePriority() == null ? 0 : dto.getHomePriority());
 
         entity.getCategories().clear();
         for (CategoryDTO catDto : dto.getCategories()) {

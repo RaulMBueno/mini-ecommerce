@@ -96,3 +96,7 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
 - **Callback do frontend:** o backend redireciona para `{FRONTEND_URL}/oauth2/redirect?token={JWT}`. Em falha (ex.: email não retornado), redireciona para `{FRONTEND_URL}/login?error=oauth2`.
 - **Frontend (React):** criar rota `/oauth2/redirect` que lê `?token=` da query, salva em `localStorage.setItem("token", token)` e redireciona para `/admin` ou home. Garantir que o cliente HTTP da API envie `Authorization: Bearer <token>` (token lido do localStorage).
 - **Validar token:** `GET /me` (requer `Authorization: Bearer <token>`); retorna `{ "email": "...", "roles": ["ROLE_CLIENT"] }`. Se o email do Google for igual a `ADMIN_EMAIL`, o usuário recebe `ROLE_ADMIN`.
+
+### Prioridade na Home (produtos)
+- A listagem pública paginada (`GET /products`) ordena por: **homePriority** (DESC), **createdAt** (DESC), **id** (DESC). Maior prioridade aparece primeiro na vitrine.
+- **Admin:** nos endpoints de criar/editar produto, enviar `homePriority` (0–999). Valor padrão 0; maior número = aparece antes na 1ª página. Texto de ajuda sugerido: *"Maior prioridade = aparece antes na vitrine (1ª página). Use 0 para padrão."*

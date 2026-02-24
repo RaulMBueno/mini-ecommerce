@@ -43,6 +43,10 @@ public class ProductDTO {
     // Destaque na vitrine
     private Boolean isFeatured;
 
+    /** Prioridade na home (0–999). Maior = aparece antes na vitrine. */
+    @jakarta.validation.constraints.Min(value = 0, message = "Prioridade deve ser >= 0")
+    private Integer homePriority = 0;
+
     // Categorias associadas
     private final List<CategoryDTO> categories = new ArrayList<>();
 
@@ -52,10 +56,11 @@ public class ProductDTO {
         this.description = entity.getDescription();
         this.price = entity.getPrice();
         this.imgUrl = entity.getImgUrl();
-        this.brand = entity.getBrand();          // 👈 mapeia marca do entity
+        this.brand = entity.getBrand();
         this.affiliateUrl = entity.getAffiliateUrl();
         this.type = entity.getType();
         this.isFeatured = entity.getIsFeatured();
+        this.homePriority = entity.getHomePriority() != null ? entity.getHomePriority() : 0;
 
         entity.getCategories().forEach(cat -> this.categories.add(new CategoryDTO(cat)));
     }

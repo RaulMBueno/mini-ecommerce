@@ -34,6 +34,8 @@ public class ProductInsertDTO implements Serializable {
     @Size(max = 255, message = "A marca deve ter no máximo 255 caracteres.")
     private String brand;
 
+    private Integer homePriority;
+
 
     private Set<Long> categoryIds = new HashSet<>();
 
