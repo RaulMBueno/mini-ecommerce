@@ -116,6 +116,20 @@ public class ProductServiceTests {
     }
 
     @Test
+    @DisplayName("findById para produto AFFILIATE deve retornar price null no DTO")
+    public void findByIdAffiliateShouldReturnPriceNullInDto() {
+        product.setType(ProductType.AFFILIATE);
+        product.setPrice(new BigDecimal("99.00"));
+        when(productRepository.findById(existingId)).thenReturn(Optional.of(product));
+
+        ProductDTO result = service.findById(existingId);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(ProductType.AFFILIATE, result.getType());
+        Assertions.assertNull(result.getPrice());
+    }
+
+    @Test
     @DisplayName("findById deve lançar ResourceNotFoundException quando o ID não existe")
     public void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
         // Arrange
@@ -143,17 +157,33 @@ public class ProductServiceTests {
     }
 
     @Test
-    @DisplayName("insert AFFILIATE com price null deve ser aceito")
+    @DisplayName("insert AFFILIATE com price null e affiliateUrl preenchido deve ser aceito")
     public void insertAffiliateWithNullPriceShouldSucceed() {
         ProductDTO affiliateDto = new ProductDTO(product);
         affiliateDto.setType(ProductType.AFFILIATE);
         affiliateDto.setPrice(null);
+        affiliateDto.setAffiliateUrl("https://parceiro.com/produto");
         when(productRepository.save(any(Product.class))).thenReturn(product);
 
         ProductDTO result = service.insert(affiliateDto);
 
         Assertions.assertNotNull(result);
         verify(productRepository, times(1)).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("insert AFFILIATE sem affiliateUrl deve lançar 400")
+    public void insertAffiliateWithoutAffiliateUrlShouldThrowBadRequest() {
+        ProductDTO affiliateDto = new ProductDTO(product);
+        affiliateDto.setType(ProductType.AFFILIATE);
+        affiliateDto.setPrice(null);
+        affiliateDto.setAffiliateUrl(null);
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+                service.insert(affiliateDto));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        verify(productRepository, never()).save(any(Product.class));
     }
 
     @Test

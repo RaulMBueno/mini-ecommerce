@@ -54,7 +54,8 @@ public class ProductDTO {
         this.id = entity.getId();
         this.name = entity.getName();
         this.description = entity.getDescription();
-        this.price = entity.getPrice();
+        // Afiliado não possui preço: sempre retornar null na API, mesmo que exista no banco
+        this.price = entity.getType() == ProductType.AFFILIATE ? null : entity.getPrice();
         this.imgUrl = entity.getImgUrl();
         this.brand = entity.getBrand();
         this.affiliateUrl = entity.getAffiliateUrl();

@@ -74,6 +74,7 @@ public class ProductService {
     @Transactional
     public ProductDTO insert(ProductDTO dto) {
         validatePriceForType(dto);
+        validateAffiliateUrlWhenAffiliate(dto);
         Product entity = new Product();
         copyDtoToEntity(dto, entity);
         entity = productRepository.save(entity);
@@ -83,6 +84,7 @@ public class ProductService {
     @Transactional
     public ProductDTO update(Long id, ProductDTO dto) {
         validatePriceForType(dto);
+        validateAffiliateUrlWhenAffiliate(dto);
         try {
             Product entity = productRepository.getReferenceById(id);
             copyDtoToEntity(dto, entity);
@@ -123,10 +125,31 @@ public class ProductService {
         }
     }
 
+    /**
+     * Quando tipo é AFFILIATE, exige affiliateUrl preenchido.
+     */
+    private void validateAffiliateUrlWhenAffiliate(ProductDTO dto) {
+        if (dto.getType() != ProductType.AFFILIATE) {
+            return;
+        }
+        String url = dto.getAffiliateUrl();
+        if (url == null || url.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Produto afiliado deve informar o link do parceiro (affiliateUrl).");
+        }
+    }
+
+    /**
+     * Produto afiliado não possui preço: ignorar valor recebido e persistir null.
+     */
     private void copyDtoToEntity(ProductDTO dto, Product entity) {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
-        entity.setPrice(dto.getPrice());
+        if (dto.getType() == ProductType.AFFILIATE) {
+            entity.setPrice(null);
+        } else {
+            entity.setPrice(dto.getPrice());
+        }
         entity.setImgUrl(dto.getImgUrl());
         entity.setAffiliateUrl(dto.getAffiliateUrl());
         entity.setType(dto.getType());
