@@ -67,6 +67,7 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
 
 4.  **Configure as variáveis de ambiente** (obrigatório desde o security hotfix):
     * `JWT_SECRET`, `DB_PASSWORD`, `CLOUDINARY_*` — Veja [docs/security-hotfix.md](docs/security-hotfix.md)
+    * **Produção (perfil prod):** `SPRING_PROFILES_ACTIVE=prod`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL` (email que recebe ROLE_ADMIN no login Google), `FRONTEND_URL` (ex.: `https://seu-app.vercel.app`; fallback local: `http://localhost:5173`)
 
 5.  **Execute a aplicação:**
     * Na pasta raiz do projeto, execute o comando Maven:
@@ -89,3 +90,9 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
 ### Produção
 - URL base: https://mini-ecommerce-production-c2d9.up.railway.app
 - Descrição: backend em produção, hospedado na Railway. Este ambiente é consumido pelo frontend do Makeup E-commerce publicado na Vercel.
+
+### Login Google (OAuth2) e JWT
+- **Iniciar login Google:** `GET /oauth2/authorization/google` (redireciona para o Google; após sucesso, redireciona para o frontend com JWT).
+- **Callback do frontend:** o backend redireciona para `{FRONTEND_URL}/oauth2/redirect?token={JWT}`. Em falha (ex.: email não retornado), redireciona para `{FRONTEND_URL}/login?error=oauth2`.
+- **Frontend (React):** criar rota `/oauth2/redirect` que lê `?token=` da query, salva em `localStorage.setItem("token", token)` e redireciona para `/admin` ou home. Garantir que o cliente HTTP da API envie `Authorization: Bearer <token>` (token lido do localStorage).
+- **Validar token:** `GET /me` (requer `Authorization: Bearer <token>`); retorna `{ "email": "...", "roles": ["ROLE_CLIENT"] }`. Se o email do Google for igual a `ADMIN_EMAIL`, o usuário recebe `ROLE_ADMIN`.

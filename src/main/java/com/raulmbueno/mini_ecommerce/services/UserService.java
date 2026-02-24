@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -102,5 +103,37 @@ public class UserService implements UserDetailsService {
         } catch (DataIntegrityViolationException e) {
             throw new DatabaseException("Violação de integridade: este usuário pode ter pedidos associados.");
         }
+    }
+
+    /**
+     * Para login OAuth2 (Google): encontra usuário por email ou cria um novo com a role indicada.
+     * Senha é um placeholder (login é só social).
+     */
+    @Transactional
+    public User findOrCreateForOAuth2(String email, String name, boolean asAdmin) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email é obrigatório para OAuth2.");
+        }
+        String normalizedEmail = email.trim().toLowerCase();
+        return userRepository.findByEmail(normalizedEmail)
+                .map(existing -> {
+                    if (asAdmin && existing.getRoles().stream().noneMatch(r -> "ROLE_ADMIN".equals(r.getAuthority()))) {
+                        roleRepository.findByAuthority("ROLE_ADMIN")
+                                .ifPresent(existing.getRoles()::add);
+                        return userRepository.save(existing);
+                    }
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setEmail(normalizedEmail);
+                    user.setName(name != null && !name.isBlank() ? name.trim() : normalizedEmail);
+                    user.setPassword(passwordEncoder.encode("OAUTH2_PLACEHOLDER_" + UUID.randomUUID()));
+                    Role role = asAdmin
+                            ? roleRepository.findByAuthority("ROLE_ADMIN").orElseGet(() -> roleRepository.save(new Role(null, "ROLE_ADMIN")))
+                            : roleRepository.findByAuthority("ROLE_CLIENT").orElseGet(() -> roleRepository.save(new Role(null, "ROLE_CLIENT")));
+                    user.getRoles().add(role);
+                    return userRepository.save(user);
+                });
     }
 }

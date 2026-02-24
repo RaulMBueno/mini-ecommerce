@@ -1,6 +1,8 @@
 package com.raulmbueno.mini_ecommerce.config;
 
 import com.raulmbueno.mini_ecommerce.config.security.SecurityFilter;
+import com.raulmbueno.mini_ecommerce.security.oauth.OAuth2FailureHandler;
+import com.raulmbueno.mini_ecommerce.security.oauth.OAuth2SuccessHandler;
 import com.raulmbueno.mini_ecommerce.services.AuthorizationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +25,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +38,9 @@ public class SecurityConfig {
 
     private final AuthorizationService authorizationService;
     private final SecurityFilter securityFilter;
+
+    @Value("${FRONTEND_URL:}")
+    private String frontendUrl;
 
     public SecurityConfig(AuthorizationService authorizationService, SecurityFilter securityFilter) {
         this.authorizationService = authorizationService;
@@ -47,13 +55,14 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     @ConditionalOnExpression("T(org.springframework.util.StringUtils).hasText('${spring.security.oauth2.client.registration.google.client-id:}')")
-    public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain oauth2FilterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler,
+                                                  OAuth2FailureHandler oAuth2FailureHandler) throws Exception {
         http
             .securityMatcher("/oauth2/**", "/login/oauth2/**")
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            .oauth2Login(Customizer.withDefaults())
+            .oauth2Login(o -> o.successHandler(oAuth2SuccessHandler).failureHandler(oAuth2FailureHandler))
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
@@ -92,13 +101,16 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // CORS liberado pra localhost:5173 (e outros)
+    // CORS: * em dev; inclui FRONTEND_URL quando definido (ex.: https://remakeup.com.br)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Em dev, pode deixar tudo liberado
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        List<String> origins = new ArrayList<>(Arrays.asList("*"));
+        if (frontendUrl != null && !frontendUrl.isBlank()) {
+            String origin = frontendUrl.trim().replaceAll("/$", "");
+            origins.add(0, origin);
+        }
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
