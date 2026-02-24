@@ -55,7 +55,7 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
     * Certifique-se de que o Docker Desktop está em execução.
     * No terminal, execute o comando para criar e iniciar o container do PostgreSQL:
     ```bash
-    docker run --name mini-ecommerce-db -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=123456 -d postgres:16
+    docker run --name mini-ecommerce-db -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=<SUA_SENHA> -d postgres:16
     ```
 
 3.  **Crie o banco de dados:**
@@ -65,12 +65,16 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
     CREATE DATABASE mini_ecommerce;
     ```
 
-4.  **Execute a aplicação:**
+4.  **Configure as variáveis de ambiente** (obrigatório desde o security hotfix):
+    * `JWT_SECRET`, `DB_PASSWORD`, `CLOUDINARY_*` — Veja [docs/security-hotfix.md](docs/security-hotfix.md)
+
+5.  **Execute a aplicação:**
     * Na pasta raiz do projeto, execute o comando Maven:
     ```bash
     .\mvnw spring-boot:run
     ```
     * O Flyway irá rodar automaticamente, criando todas as tabelas. A API estará disponível em `http://localhost:8080`.
+    * **Importante:** `DB_PASSWORD` deve ser igual ao `POSTGRES_PASSWORD` usado no passo 2.
 
 ## Boas Práticas e Padrões de Projeto Aplicados
 

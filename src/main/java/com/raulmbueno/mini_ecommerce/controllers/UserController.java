@@ -34,6 +34,7 @@ public class UserController {
         return ResponseEntity.ok().body(dto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserDTO> insert(@Valid @RequestBody UserInsertDTO dto) {
         UserDTO newDto = service.insert(dto);
@@ -49,6 +50,7 @@ public class UserController {
         return ResponseEntity.ok().body(newDto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

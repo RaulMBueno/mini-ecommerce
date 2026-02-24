@@ -2,6 +2,7 @@ package com.raulmbueno.mini_ecommerce.repositories;
 
 import com.raulmbueno.mini_ecommerce.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
@@ -14,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return um Optional contendo o User, se encontrado, ou um Optional vazio caso contrário.
      */
     Optional<User> findByEmail(String email);
+
+    @Query("SELECT COUNT(u) > 0 FROM User u JOIN u.roles r WHERE r.authority = 'ROLE_ADMIN'")
+    boolean existsAnyAdmin();
 }

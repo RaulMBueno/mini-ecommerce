@@ -21,6 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class BrandService {
 
     @Autowired

@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final AuthorizationService authorizationService;
@@ -43,17 +45,22 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             // CORS
             .cors(Customizer.withDefaults())
-            // Sem CSRF (API stateless)
+            // Sem CSRF (API stateless; OAuth2 usa state em cookie)
             .csrf(csrf -> csrf.disable())
-            // JWT = stateless
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Session IF_REQUIRED: OAuth2 precisa de session para guardar state; JWT continua para API
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            // OAuth2 Login (Google): handshake em /oauth2/** e callback em /login/oauth2/code/google
+            .oauth2Login(Customizer.withDefaults())
             // AUTORIZAÇÃO
             .authorizeHttpRequests(auth -> auth
                 // Pré-flight (CORS)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Login / refresh / etc
+                // Login (email/senha)
                 .requestMatchers("/auth/**").permitAll()
+
+                // OAuth2: autorização e callback
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 
                 // Vitrine pública (GET liberado)
                 .requestMatchers(HttpMethod.GET,
@@ -62,20 +69,29 @@ public class SecurityConfig {
                         "/brands/**"
                 ).permitAll()
 
-                // ---- AQUI ESTÁ A MUDANÇA: brands protegidas para escrita ----
-                .requestMatchers(HttpMethod.POST, "/brands/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/brands/**").authenticated()
-                // -------------------------------------------------------------
+                // Health check (load balancers, Railway)
+                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 
-                // Endpoints protegidos (cadastros, deletes etc. de product/category)
-                .requestMatchers(HttpMethod.POST, "/products/**").authenticated()
-                .requestMatchers(HttpMethod.PUT,  "/products/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/products/**").authenticated()
-                .requestMatchers(HttpMethod.POST, "/categories/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/categories/**").authenticated()
+                // Escrita: exige ROLE_ADMIN (method security reforça com @PreAuthorize)
+                .requestMatchers(HttpMethod.POST,   "/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST,   "/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST,   "/brands/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/brands/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/brands/**").hasRole("ADMIN")
 
-                // Todo resto por enquanto fica liberado (se quiser depois trocamos pra authenticated)
-                .anyRequest().permitAll()
+                // Usuários: apenas ADMIN pode criar/editar/excluir/listar
+                .requestMatchers("/users/**").hasRole("ADMIN")
+
+                // Orders e clients: exige autenticação (qualquer usuário logado)
+                .requestMatchers("/orders/**").authenticated()
+                .requestMatchers("/clients/**").authenticated()
+
+                // Demais rotas: exigem autenticação (nenhuma rota sensível aberta)
+                .anyRequest().authenticated()
             )
             // Filtro JWT antes do UsernamePasswordAuthenticationFilter
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
@@ -100,6 +116,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("deprecation") // DaoAuthenticationProvider API ainda suportada em Spring Security 6
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(authorizationService);

@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
+@SuppressWarnings("null")
 public class CategoryServiceTests {
 
     @InjectMocks

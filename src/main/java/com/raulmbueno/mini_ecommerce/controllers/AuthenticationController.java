@@ -29,7 +29,7 @@ public class AuthenticationController {
     }
     
 @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid LoginRequestDTO data) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDTO data) {
         System.out.println("--- TENTATIVA DE LOGIN ---");
         System.out.println("Email recebido: " + data.getEmail());
         

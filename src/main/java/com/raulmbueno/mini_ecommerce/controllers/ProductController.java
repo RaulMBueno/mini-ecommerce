@@ -1,9 +1,10 @@
 package com.raulmbueno.mini_ecommerce.controllers;
 
+import com.raulmbueno.mini_ecommerce.dtos.PageResponse;
 import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
 import com.raulmbueno.mini_ecommerce.services.ProductService;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,12 +23,11 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> findAllPaged(
+    public ResponseEntity<PageResponse<ProductDTO>> findAllPaged(
             @RequestParam(value = "search", required = false) String search,
             Pageable pageable
     ) {
-        Page<ProductDTO> list = service.findAllPaged(search, pageable);
-        return ResponseEntity.ok().body(list);
+        return ResponseEntity.ok(PageResponse.from(service.findAllPaged(search, pageable)));
     }
 
     @GetMapping(value = "/{id}")
@@ -36,7 +36,8 @@ public class ProductController {
         return ResponseEntity.ok().body(dto);
     }
 
-@PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
     public ResponseEntity<ProductDTO> insert(@RequestBody @Valid ProductDTO dto) {
         dto = service.insert(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
@@ -50,6 +51,7 @@ public class ProductController {
         return ResponseEntity.ok().body(dto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

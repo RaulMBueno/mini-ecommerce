@@ -50,7 +50,7 @@ public class BrandLogoStorageService {
             // public_id fixo por marca → se reenviar, substitui a logo
             String publicId = "brand-" + brand.getId();
 
-            Map uploadResult = cloudinary.uploader().upload(
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
                 file.getBytes(),
                 ObjectUtils.asMap(
                     "folder", "remakeupstore/brands", // pasta lógica no Cloudinary

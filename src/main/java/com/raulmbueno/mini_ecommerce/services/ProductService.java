@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class ProductService {
 
     private final CategoryRepository categoryRepository;

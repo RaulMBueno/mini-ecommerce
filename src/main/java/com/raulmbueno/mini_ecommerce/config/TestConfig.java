@@ -27,6 +27,7 @@ public class TestConfig implements CommandLineRunner {
     @Autowired private PasswordEncoder passwordEncoder;
 
     @Override
+    @SuppressWarnings("null")
     public void run(String... args) throws Exception {
         
         // --- ATENÇÃO: COMENTEI A TRAVA PARA FORÇAR A ATUALIZAÇÃO DOS CARGOS ---

@@ -8,8 +8,8 @@ import com.raulmbueno.mini_ecommerce.services.BrandLogoStorageService;
 import com.raulmbueno.mini_ecommerce.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/brands")
+@SuppressWarnings("null")
 public class BrandController {
 
     @Autowired
@@ -38,6 +39,7 @@ public class BrandController {
     }
 
     // CRIAR NOVA MARCA (painel admin)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<BrandDTO> insert(@RequestBody @Valid BrandDTO dto) {
         BrandDTO created = brandService.insert(dto);
@@ -51,6 +53,7 @@ public class BrandController {
     }
 
     // ATUALIZAR NOME DA MARCA (se precisar)
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<BrandDTO> update(
             @PathVariable Long id,
@@ -61,6 +64,7 @@ public class BrandController {
     }
 
     // DELETAR MARCA
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         brandService.delete(id);
@@ -68,6 +72,7 @@ public class BrandController {
     }
 
     // UPLOAD DA LOGO DA MARCA (agora usando Cloudinary via BrandLogoStorageService)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/logo")
     public ResponseEntity<BrandDTO> uploadLogo(
             @PathVariable Long id,

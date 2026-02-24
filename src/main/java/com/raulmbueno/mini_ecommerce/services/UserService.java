@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -57,12 +58,17 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserDTO insert(UserInsertDTO dto) {
+        // Hardening: nunca aceitar roles no payload — ROLE_ADMIN só via ProdAdminSeeder ou banco
+        if (dto.getRoles() != null && !dto.getRoles().isEmpty()) {
+            throw new DatabaseException("Campo 'roles' não permitido na criação de usuário via API.");
+        }
+
         User entity = new User();
         copyDtoToEntity(dto, entity);
 
         entity.getRoles().clear();
-        Role clientRole = roleRepository.findById(2L)
-                .orElseThrow(() -> new ResourceNotFoundException("Role de cliente não encontrada"));
+        Role clientRole = roleRepository.findByAuthority("ROLE_CLIENT")
+                .orElseThrow(() -> new ResourceNotFoundException("Role ROLE_CLIENT não encontrada no banco"));
         entity.getRoles().add(clientRole);
 
         entity.setPassword(passwordEncoder.encode(dto.getPassword()));
