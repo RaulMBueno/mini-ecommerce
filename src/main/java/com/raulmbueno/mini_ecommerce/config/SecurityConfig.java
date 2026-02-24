@@ -2,8 +2,10 @@ package com.raulmbueno.mini_ecommerce.config;
 
 import com.raulmbueno.mini_ecommerce.config.security.SecurityFilter;
 import com.raulmbueno.mini_ecommerce.services.AuthorizationService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -37,42 +39,41 @@ public class SecurityConfig {
         this.securityFilter = securityFilter;
     }
 
+    /**
+     * Chain apenas para OAuth2 (Google). Ativa só quando
+     * spring.security.oauth2.client.registration.google.client-id estiver configurado e não vazio (ex.: perfil prod).
+     * Evita "No qualifying bean of type 'ClientRegistrationRepository'" em dev/Railway sem OAuth2.
+     */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
+    @Order(1)
+    @ConditionalOnExpression("T(org.springframework.util.StringUtils).hasText('${spring.security.oauth2.client.registration.google.client-id:}')")
+    public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
         http
-            // Libera uso em iframe (H2, etc, se usar)
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            // CORS
+            .securityMatcher("/oauth2/**", "/login/oauth2/**")
             .cors(Customizer.withDefaults())
-            // Sem CSRF (API stateless; OAuth2 usa state em cookie)
             .csrf(csrf -> csrf.disable())
-            // Session IF_REQUIRED: OAuth2 precisa de session para guardar state; JWT continua para API
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            // OAuth2 Login (Google): handshake em /oauth2/** e callback em /login/oauth2/code/google
             .oauth2Login(Customizer.withDefaults())
-            // AUTORIZAÇÃO
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
+     * Chain principal: JWT, permissões públicas (GET), ADMIN, etc. Sem oauth2Login para não depender de ClientRegistrationRepository.
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Pré-flight (CORS)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // Login (email/senha)
                 .requestMatchers("/auth/**").permitAll()
-
-                // OAuth2: autorização e callback
-                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-
-                // Vitrine pública (GET liberado)
-                .requestMatchers(HttpMethod.GET,
-                        "/products/**",
-                        "/categories/**",
-                        "/brands/**"
-                ).permitAll()
-
-                // Health check (load balancers, Railway)
+                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/brands/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-
-                // Escrita: exige ROLE_ADMIN (method security reforça com @PreAuthorize)
                 .requestMatchers(HttpMethod.POST,   "/products/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/products/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
@@ -82,20 +83,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,   "/brands/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/brands/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/brands/**").hasRole("ADMIN")
-
-                // Usuários: apenas ADMIN pode criar/editar/excluir/listar
                 .requestMatchers("/users/**").hasRole("ADMIN")
-
-                // Orders e clients: exige autenticação (qualquer usuário logado)
                 .requestMatchers("/orders/**").authenticated()
                 .requestMatchers("/clients/**").authenticated()
-
-                // Demais rotas: exigem autenticação (nenhuma rota sensível aberta)
                 .anyRequest().authenticated()
             )
-            // Filtro JWT antes do UsernamePasswordAuthenticationFilter
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
