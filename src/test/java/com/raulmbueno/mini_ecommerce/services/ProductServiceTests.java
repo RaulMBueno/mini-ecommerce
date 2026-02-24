@@ -3,6 +3,7 @@ package com.raulmbueno.mini_ecommerce.services;
 import com.raulmbueno.mini_ecommerce.dtos.ProductDTO;
 import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.entities.Product;
+import com.raulmbueno.mini_ecommerce.entities.enums.ProductType;
 import com.raulmbueno.mini_ecommerce.repositories.CategoryRepository;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
 import com.raulmbueno.mini_ecommerce.services.exceptions.DatabaseException;
@@ -20,14 +21,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -136,6 +140,34 @@ public class ProductServiceTests {
         // Assert
         Assertions.assertNotNull(result);
         Assertions.assertEquals(product.getName(), result.getName());
+    }
+
+    @Test
+    @DisplayName("insert AFFILIATE com price null deve ser aceito")
+    public void insertAffiliateWithNullPriceShouldSucceed() {
+        ProductDTO affiliateDto = new ProductDTO(product);
+        affiliateDto.setType(ProductType.AFFILIATE);
+        affiliateDto.setPrice(null);
+        when(productRepository.save(any(Product.class))).thenReturn(product);
+
+        ProductDTO result = service.insert(affiliateDto);
+
+        Assertions.assertNotNull(result);
+        verify(productRepository, times(1)).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("insert PHYSICAL com price null deve lançar 400")
+    public void insertPhysicalWithNullPriceShouldThrowBadRequest() {
+        ProductDTO dto = new ProductDTO(product);
+        dto.setType(ProductType.PHYSICAL);
+        dto.setPrice(null);
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+                service.insert(dto));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        verify(productRepository, never()).save(any(Product.class));
     }
 
     @Test

@@ -6,11 +6,16 @@ import com.raulmbueno.mini_ecommerce.entities.Category;
 import com.raulmbueno.mini_ecommerce.entities.Product;
 import com.raulmbueno.mini_ecommerce.repositories.CategoryRepository;
 import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
+import com.raulmbueno.mini_ecommerce.entities.enums.ProductType;
 import com.raulmbueno.mini_ecommerce.services.exceptions.DatabaseException;
 import com.raulmbueno.mini_ecommerce.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
@@ -68,6 +73,7 @@ public class ProductService {
 
     @Transactional
     public ProductDTO insert(ProductDTO dto) {
+        validatePriceForType(dto);
         Product entity = new Product();
         copyDtoToEntity(dto, entity);
         entity = productRepository.save(entity);
@@ -76,6 +82,7 @@ public class ProductService {
 
     @Transactional
     public ProductDTO update(Long id, ProductDTO dto) {
+        validatePriceForType(dto);
         try {
             Product entity = productRepository.getReferenceById(id);
             copyDtoToEntity(dto, entity);
@@ -94,6 +101,25 @@ public class ProductService {
             productRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
             throw new DatabaseException("Violação de integridade: este produto pode estar em um pedido.");
+        }
+    }
+
+    /**
+     * Para tipo AFFILIATE, preço é opcional (pode ser null).
+     * Para PHYSICAL e DIGITAL, preço é obrigatório e deve ser positivo.
+     */
+    private void validatePriceForType(ProductDTO dto) {
+        if (dto.getType() == null || dto.getType() == ProductType.AFFILIATE) {
+            return;
+        }
+        BigDecimal price = dto.getPrice();
+        if (price == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Preço é obrigatório para produtos Físico ou Digital.");
+        }
+        if (price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Preço deve ser positivo para produtos Físico ou Digital.");
         }
     }
 
