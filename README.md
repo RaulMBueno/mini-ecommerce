@@ -100,3 +100,9 @@ Siga os passos abaixo para executar a aplicação em seu ambiente local.
 ### Prioridade na Home (produtos)
 - A listagem pública paginada (`GET /products`) ordena por: **homePriority** (DESC), **createdAt** (DESC), **id** (DESC). Maior prioridade aparece primeiro na vitrine.
 - **Admin:** nos endpoints de criar/editar produto, enviar `homePriority` (0–999). Valor padrão 0; maior número = aparece antes na 1ª página. Texto de ajuda sugerido: *"Maior prioridade = aparece antes na vitrine (1ª página). Use 0 para padrão."*
+
+### Renomear categoria (Admin)
+- **PUT /categories/{id}** (requer `ROLE_ADMIN`): body `{ "name": "Novo Nome" }`. Retorna `CategoryDTO` (id, name).
+- **Validação:** nome é trimado; se vazio → **400** ("Nome não pode ser vazio.").
+- **Duplicidade:** se já existir categoria com o mesmo nome (case-insensitive), exceto a que está sendo editada → **409** ("Categoria já existe").
+- **Frontend (ex.: CategoriesAdmin):** edição inline com input; ao salvar, `api.put(\`/categories/${id}\`, { name })`; tratar 409 com mensagem "Já existe uma categoria com esse nome." e 400/401 conforme necessário.

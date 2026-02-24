@@ -14,12 +14,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -118,18 +121,20 @@ public class CategoryServiceTests {
     }
 
     @Test
-    @DisplayName("update deve retornar CategoryDTO quando o ID existe")
+    @DisplayName("update deve retornar CategoryDTO quando o ID existe e nome não é duplicado")
     public void updateShouldReturnCategoryDTOWhenIdExists() {
         // Arrange
         when(repository.getReferenceById(existingId)).thenReturn(category);
+        when(repository.existsByNameIgnoreCaseAndIdNot("Eletrônicos", existingId)).thenReturn(false);
         when(repository.save(any(Category.class))).thenReturn(category);
-        
+
         // Act
         CategoryDTO result = service.update(existingId, categoryDTO);
 
         // Assert
         Assertions.assertNotNull(result);
         verify(repository, times(1)).getReferenceById(existingId);
+        verify(repository, times(1)).existsByNameIgnoreCaseAndIdNot("Eletrônicos", existingId);
         verify(repository, times(1)).save(category);
     }
 
@@ -145,6 +150,39 @@ public class CategoryServiceTests {
         });
 
         verify(repository, times(1)).getReferenceById(nonExistingId);
+        verify(repository, never()).save(any(Category.class));
+    }
+
+    @Test
+    @DisplayName("update deve lançar ResponseStatusException 400 quando nome é vazio ou só espaços")
+    public void updateShouldThrowBadRequestWhenNameIsBlank() {
+        when(repository.getReferenceById(existingId)).thenReturn(category);
+        CategoryDTO blankDto = new CategoryDTO();
+        blankDto.setName("   ");
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
+            service.update(existingId, blankDto);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        verify(repository, never()).existsByNameIgnoreCaseAndIdNot(any(), any());
+        verify(repository, never()).save(any(Category.class));
+    }
+
+    @Test
+    @DisplayName("update deve lançar ResponseStatusException 409 quando nome já existe (case-insensitive)")
+    public void updateShouldThrowConflictWhenNameAlreadyExists() {
+        when(repository.getReferenceById(existingId)).thenReturn(category);
+        when(repository.existsByNameIgnoreCaseAndIdNot("Batom", existingId)).thenReturn(true);
+        CategoryDTO duplicateDto = new CategoryDTO();
+        duplicateDto.setName("Batom");
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
+            service.update(existingId, duplicateDto);
+        });
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        verify(repository, times(1)).existsByNameIgnoreCaseAndIdNot("Batom", existingId);
         verify(repository, never()).save(any(Category.class));
     }
 
