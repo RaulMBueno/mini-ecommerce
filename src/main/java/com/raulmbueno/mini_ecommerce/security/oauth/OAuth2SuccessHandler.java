@@ -17,8 +17,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Após login Google (OAuth2), cria/atualiza usuário no banco, gera JWT e redireciona
- * para o frontend em /oauth2/redirect?token=...
+ * Após login Google (OAuth2): só emite JWT e redireciona com token se email == ADMIN_EMAIL.
+ * Caso contrário redireciona para /oauth2/redirect?error=unauthorized (sem token).
  */
 @Component
 @ConditionalOnExpression("T(org.springframework.util.StringUtils).hasText('${spring.security.oauth2.client.registration.google.client-id:}')")
@@ -44,24 +44,30 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
         if (email == null || email.isBlank()) {
-            redirectToFrontendError(response, "login?error=oauth2_email_missing");
+            redirectUnauthorized(response);
+            return;
+        }
+
+        String adminEmailTrimmed = adminEmail != null ? adminEmail.trim() : "";
+        if (adminEmailTrimmed.isEmpty() || !email.equalsIgnoreCase(adminEmailTrimmed)) {
+            redirectUnauthorized(response);
             return;
         }
 
         String name = oauth2User.getAttribute("name");
-        boolean asAdmin = adminEmail != null && !adminEmail.isBlank()
-                && email.equalsIgnoreCase(adminEmail.trim());
-
-        User user = userService.findOrCreateForOAuth2(email, name, asAdmin);
+        User user = userService.findOrCreateForOAuth2(email, name, true);
         String jwt = tokenService.generateToken(user);
 
-        String baseUrl = (frontendUrl == null || frontendUrl.isBlank()) ? "http://localhost:5173" : frontendUrl.trim().replaceAll("/$", "");
+        String baseUrl = getBaseUrl();
         String redirectUrl = baseUrl + "/oauth2/redirect?token=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8);
         response.sendRedirect(redirectUrl);
     }
 
-    private void redirectToFrontendError(HttpServletResponse response, String path) throws IOException {
-        String baseUrl = (frontendUrl == null || frontendUrl.isBlank()) ? "http://localhost:5173" : frontendUrl.trim().replaceAll("/$", "");
-        response.sendRedirect(baseUrl + "/" + path);
+    private void redirectUnauthorized(HttpServletResponse response) throws IOException {
+        response.sendRedirect(getBaseUrl() + "/oauth2/redirect?error=unauthorized");
+    }
+
+    private String getBaseUrl() {
+        return (frontendUrl == null || frontendUrl.isBlank()) ? "http://localhost:5173" : frontendUrl.trim().replaceAll("/$", "");
     }
 }

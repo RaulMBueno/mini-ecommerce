@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * Em caso de falha no login OAuth2 (Google), redireciona para o frontend em /login?error=oauth2.
+ * Em caso de falha no login OAuth2 (Google), redireciona para o frontend em /oauth2/redirect?error=oauth_failed.
  */
 @Component
 @ConditionalOnExpression("T(org.springframework.util.StringUtils).hasText('${spring.security.oauth2.client.registration.google.client-id:}')")
@@ -24,6 +24,6 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
         String baseUrl = (frontendUrl == null || frontendUrl.isBlank()) ? "http://localhost:5173" : frontendUrl.trim().replaceAll("/$", "");
-        response.sendRedirect(baseUrl + "/login?error=oauth2");
+        response.sendRedirect(baseUrl + "/oauth2/redirect?error=oauth_failed");
     }
 }
