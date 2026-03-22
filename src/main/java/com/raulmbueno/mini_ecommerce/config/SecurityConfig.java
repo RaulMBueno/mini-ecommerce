@@ -20,14 +20,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,20 +52,21 @@ public class SecurityConfig {
     }
 
     /**
-     * Chain dedicada para /interest-signups - prioridade máxima (Order 0).
-     * Sem oauth2Login para evitar interceptação de POST. Usa AntPathRequestMatcher.
+     * Chain dedicada para lista de interesse - público, sem autenticação.
+     * Atende /interest-signups e /public/interest-signups (evita 401 quando frontend usa path sem /public).
      */
     @Bean
     @Order(0)
     public SecurityFilterChain interestSignupChain(HttpSecurity http) throws Exception {
         return http
-            .securityMatcher("/interest-signups", "/interest-signups/**", "/interest-signups/*")
+            .securityMatcher("/interest-signups", "/interest-signups/**", "/interest-signups/*",
+                    "/public/interest-signups", "/public/interest-signups/**", "/public/interest-signups/*")
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .exceptionHandling(ex -> ex
-                .accessDeniedHandler((req, res, ex1) -> {
-                    log.warn(">>> 403 INTEREST CHAIN: {} {} | URI={}", req.getMethod(), req.getRequestURI(), req.getRequestURI());
+                .accessDeniedHandler((req, res, accessDeniedEx) -> {
+                    log.warn(">>> 403 INTEREST CHAIN: {} {}", req.getMethod(), req.getRequestURI());
                     res.setStatus(403);
                     res.setContentType("application/json");
                     res.getWriter().write("{\"error\":\"AccessDenied\",\"chain\":\"interestSignup\",\"path\":\"" + req.getRequestURI() + "\",\"method\":\"" + req.getMethod() + "\"}");
@@ -108,7 +109,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/interest-signups", "/interest-signups/").permitAll()
+                .requestMatchers("/public/**", "/interest-signups", "/interest-signups/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/brands/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/products/**").hasRole("ADMIN")
@@ -126,8 +127,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
-                .accessDeniedHandler((req, res, ex1) -> {
-                    log.warn(">>> 403 MAIN CHAIN: {} {} | URI={}", req.getMethod(), req.getRequestURI(), req.getRequestURI());
+                .accessDeniedHandler((req, res, accessDeniedEx) -> {
+                    log.warn(">>> 403 MAIN CHAIN: {} {}", req.getMethod(), req.getRequestURI());
                     res.setStatus(403);
                     res.setContentType("application/json");
                     res.getWriter().write("{\"error\":\"AccessDenied\",\"chain\":\"main\",\"path\":\"" + req.getRequestURI() + "\",\"method\":\"" + req.getMethod() + "\"}");

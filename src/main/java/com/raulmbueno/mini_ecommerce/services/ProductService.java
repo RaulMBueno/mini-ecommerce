@@ -9,7 +9,6 @@ import com.raulmbueno.mini_ecommerce.repositories.ProductRepository;
 import com.raulmbueno.mini_ecommerce.entities.enums.ProductType;
 import com.raulmbueno.mini_ecommerce.services.exceptions.DatabaseException;
 import com.raulmbueno.mini_ecommerce.services.exceptions.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -85,14 +84,11 @@ public class ProductService {
     public ProductDTO update(Long id, ProductDTO dto) {
         validatePriceForType(dto);
         validateAffiliateUrlWhenAffiliate(dto);
-        try {
-            Product entity = productRepository.getReferenceById(id);
-            copyDtoToEntity(dto, entity);
-            entity = productRepository.save(entity);
-            return new ProductDTO(entity);
-        } catch (EntityNotFoundException e) {
-            throw new ResourceNotFoundException("Produto com ID " + id + " não encontrado");
-        }
+        Product entity = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto com ID " + id + " não encontrado"));
+        copyDtoToEntity(dto, entity);
+        entity = productRepository.save(entity);
+        return new ProductDTO(entity);
     }
 
     public void delete(Long id) {

@@ -13,9 +13,10 @@ import java.net.URI;
 /**
  * Endpoint público para pré-cadastro de interesse.
  * Não requer autenticação.
+ * Atende /interest-signups e /public/interest-signups.
  */
 @RestController
-@RequestMapping(value = "/interest-signups")
+@RequestMapping(value = {"/interest-signups", "/public/interest-signups"})
 public class InterestSignupController {
 
     private final InterestSignupService service;

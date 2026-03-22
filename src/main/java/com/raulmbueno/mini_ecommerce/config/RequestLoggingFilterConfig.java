@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.lang.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -15,8 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * Loga requisições para /interest-signups para diagnóstico de 403.
- * Remover após resolver o problema.
+ * Loga requisições para /public/interest-signups (diagnóstico).
  */
 @Configuration
 public class RequestLoggingFilterConfig {
@@ -28,17 +28,17 @@ public class RequestLoggingFilterConfig {
             private final Logger log = LoggerFactory.getLogger("RequestLoggingFilter");
 
             @Override
-            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                           FilterChain filterChain) throws ServletException, IOException {
+            protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+                                           @NonNull FilterChain filterChain) throws ServletException, IOException {
                 String path = request.getRequestURI();
                 if (path != null && path.contains("interest-signups")) {
-                    log.info(">>> REQUEST CHEGOU: {} {} | URI={} | ContextPath={}",
-                            request.getMethod(), path, request.getRequestURI(), request.getContextPath());
+                    log.info(">>> REQUEST: {} {} | URI={}", request.getMethod(), path, request.getRequestURI());
                 }
                 filterChain.doFilter(request, response);
             }
         });
-        registration.addUrlPatterns("/interest-signups", "/interest-signups/*", "/interest-signups/**");
+        registration.addUrlPatterns("/interest-signups", "/interest-signups/*", "/interest-signups/**",
+                "/public/interest-signups", "/public/interest-signups/*", "/public/interest-signups/**");
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return registration;
     }
