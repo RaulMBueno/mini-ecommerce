@@ -59,7 +59,7 @@ public class SecurityConfig {
     public SecurityFilterChain oauth2FilterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler,
                                                   OAuth2FailureHandler oAuth2FailureHandler) throws Exception {
         http
-            .securityMatcher("/oauth2/**", "/login/oauth2/**")
+            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/interest-signups", "/interest-signups/**")
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -76,6 +76,7 @@ public class SecurityConfig {
     @SuppressWarnings("deprecation") // AntPathRequestMatcher: evita MvcRequestMatcher em prod (proxy/forward)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher("/**")
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
