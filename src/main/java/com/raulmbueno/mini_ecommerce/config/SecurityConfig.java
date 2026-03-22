@@ -17,12 +17,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,6 +38,8 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final AuthorizationService authorizationService;
     private final SecurityFilter securityFilter;
 
@@ -49,26 +52,24 @@ public class SecurityConfig {
     }
 
     /**
-     * Ignora completamente Spring Security para /interest-signups - bypass total.
-     * Necessário CORS no WebMvcConfig (InterestSignupCorsConfig).
-     */
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/interest-signups", "/interest-signups/**");
-    }
-
-    /**
-     * Chain dedicada para POST /interest-signups - prioridade máxima (Order 0).
+     * Chain dedicada para /interest-signups - prioridade máxima (Order 0).
      * Sem oauth2Login para evitar interceptação de POST. Usa AntPathRequestMatcher.
      */
     @Bean
     @Order(0)
     public SecurityFilterChain interestSignupChain(HttpSecurity http) throws Exception {
         return http
-            .securityMatcher("/interest-signups", "/interest-signups/**")
+            .securityMatcher("/interest-signups", "/interest-signups/**", "/interest-signups/*")
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler((req, res, ex1) -> {
+                    log.warn(">>> 403 INTEREST CHAIN: {} {} | URI={}", req.getMethod(), req.getRequestURI(), req.getRequestURI());
+                    res.setStatus(403);
+                    res.setContentType("application/json");
+                    res.getWriter().write("{\"error\":\"AccessDenied\",\"chain\":\"interestSignup\",\"path\":\"" + req.getRequestURI() + "\",\"method\":\"" + req.getMethod() + "\"}");
+                }))
             .build();
     }
 
@@ -124,6 +125,13 @@ public class SecurityConfig {
                 .requestMatchers("/clients/**").authenticated()
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler((req, res, ex1) -> {
+                    log.warn(">>> 403 MAIN CHAIN: {} {} | URI={}", req.getMethod(), req.getRequestURI(), req.getRequestURI());
+                    res.setStatus(403);
+                    res.setContentType("application/json");
+                    res.getWriter().write("{\"error\":\"AccessDenied\",\"chain\":\"main\",\"path\":\"" + req.getRequestURI() + "\",\"method\":\"" + req.getMethod() + "\"}");
+                }))
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

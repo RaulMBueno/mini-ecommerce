@@ -24,6 +24,15 @@ public class InterestSignupController {
         this.service = service;
     }
 
+    /**
+     * Diagnóstico: GET retorna 200 se o path estiver acessível.
+     * Use para testar se requisições chegam ao controller.
+     */
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("OK");
+    }
+
     @PostMapping
     public ResponseEntity<InterestSignupDTO> insert(@Valid @RequestBody InterestSignupInsertDTO dto) {
         InterestSignupDTO created = service.insert(dto);
