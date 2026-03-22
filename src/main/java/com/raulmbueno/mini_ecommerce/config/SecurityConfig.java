@@ -49,6 +49,25 @@ public class SecurityConfig {
     }
 
     /**
+     * Chain dedicada para POST /interest-signups - prioridade máxima (Order 0).
+     * Sem oauth2Login para evitar interceptação de POST. Usa AntPathRequestMatcher.
+     */
+    @Bean
+    @Order(0)
+    @SuppressWarnings("deprecation")
+    public SecurityFilterChain interestSignupChain(HttpSecurity http) throws Exception {
+        return http
+            .securityMatcher(
+                new AntPathRequestMatcher("/interest-signups", "POST"),
+                new AntPathRequestMatcher("/interest-signups/", "POST")
+            )
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .build();
+    }
+
+    /**
      * Chain apenas para OAuth2 (Google). Ativa só quando
      * spring.security.oauth2.client.registration.google.client-id estiver configurado e não vazio (ex.: perfil prod).
      * Evita "No qualifying bean of type 'ClientRegistrationRepository'" em dev/Railway sem OAuth2.
@@ -59,7 +78,7 @@ public class SecurityConfig {
     public SecurityFilterChain oauth2FilterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler,
                                                   OAuth2FailureHandler oAuth2FailureHandler) throws Exception {
         http
-            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/interest-signups", "/interest-signups/**")
+            .securityMatcher("/oauth2/**", "/login/oauth2/**")
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
