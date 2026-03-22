@@ -22,7 +22,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -54,13 +53,9 @@ public class SecurityConfig {
      */
     @Bean
     @Order(0)
-    @SuppressWarnings("deprecation")
     public SecurityFilterChain interestSignupChain(HttpSecurity http) throws Exception {
         return http
-            .securityMatcher(
-                new AntPathRequestMatcher("/interest-signups", "POST"),
-                new AntPathRequestMatcher("/interest-signups/", "POST")
-            )
+            .securityMatcher("/interest-signups", "/interest-signups/**")
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
@@ -92,7 +87,6 @@ public class SecurityConfig {
      */
     @Bean
     @Order(2)
-    @SuppressWarnings("deprecation") // AntPathRequestMatcher: evita MvcRequestMatcher em prod (proxy/forward)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/**")
@@ -103,10 +97,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(
-                        new AntPathRequestMatcher("/interest-signups", "POST"),
-                        new AntPathRequestMatcher("/interest-signups/", "POST")
-                ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/interest-signups", "/interest-signups/").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/brands/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/products/**").hasRole("ADMIN")
