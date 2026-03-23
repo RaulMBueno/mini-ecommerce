@@ -7,6 +7,8 @@ import com.raulmbueno.mini_ecommerce.repositories.InterestSignupRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @SuppressWarnings("null")
 public class InterestSignupService {
@@ -15,6 +17,13 @@ public class InterestSignupService {
 
     public InterestSignupService(InterestSignupRepository repository) {
         this.repository = repository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<InterestSignupDTO> findAllOrderedByNewest() {
+        return repository.findAllByOrderByCreatedAtDesc().stream()
+                .map(InterestSignupDTO::new)
+                .toList();
     }
 
     @Transactional

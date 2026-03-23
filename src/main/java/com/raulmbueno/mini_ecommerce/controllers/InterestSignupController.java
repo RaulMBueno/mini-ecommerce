@@ -5,10 +5,12 @@ import com.raulmbueno.mini_ecommerce.dtos.InterestSignupInsertDTO;
 import com.raulmbueno.mini_ecommerce.services.InterestSignupService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * Endpoint público para pré-cadastro de interesse.
@@ -32,6 +34,15 @@ public class InterestSignupController {
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("OK");
+    }
+
+    /**
+     * Listagem administrativa — mais recentes primeiro. Requer ROLE_ADMIN.
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<InterestSignupDTO>> findAll() {
+        return ResponseEntity.ok(service.findAllOrderedByNewest());
     }
 
     @PostMapping

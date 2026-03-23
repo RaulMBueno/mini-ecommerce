@@ -17,8 +17,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher; // deprecated mas necessário para web.ignoring()
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,44 +49,6 @@ public class SecurityConfig {
     public SecurityConfig(AuthorizationService authorizationService, SecurityFilter securityFilter) {
         this.authorizationService = authorizationService;
         this.securityFilter = securityFilter;
-    }
-
-    /**
-     * Bypass total do Spring Security para lista de interesse - evita 403 em qualquer cenário.
-     * A requisição nem entra na filter chain.
-     */
-    @Bean
-    @SuppressWarnings("deprecation")
-    WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers(
-                new AntPathRequestMatcher("/interest-signups"),
-                new AntPathRequestMatcher("/interest-signups/**"),
-                new AntPathRequestMatcher("/public/interest-signups"),
-                new AntPathRequestMatcher("/public/interest-signups/**")
-        );
-    }
-
-    /**
-     * Chain dedicada para lista de interesse - público, sem autenticação.
-     * Atende /interest-signups e /public/interest-signups (evita 401 quando frontend usa path sem /public).
-     */
-    @Bean
-    @Order(0)
-    public SecurityFilterChain interestSignupChain(HttpSecurity http) throws Exception {
-        return http
-            .securityMatcher("/interest-signups", "/interest-signups/**", "/interest-signups/*",
-                    "/public/interest-signups", "/public/interest-signups/**", "/public/interest-signups/*")
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .exceptionHandling(ex -> ex
-                .accessDeniedHandler((req, res, accessDeniedEx) -> {
-                    log.warn(">>> 403 INTEREST CHAIN: {} {}", req.getMethod(), req.getRequestURI());
-                    res.setStatus(403);
-                    res.setContentType("application/json");
-                    res.getWriter().write("{\"error\":\"AccessDenied\",\"chain\":\"interestSignup\",\"path\":\"" + req.getRequestURI() + "\",\"method\":\"" + req.getMethod() + "\"}");
-                }))
-            .build();
     }
 
     /**
@@ -126,7 +86,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/public/**", "/interest-signups", "/interest-signups/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/interest-signups/ping").permitAll()
+                .requestMatchers(HttpMethod.GET, "/public/interest-signups/ping").permitAll()
+                .requestMatchers(HttpMethod.GET, "/interest-signups").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/public/interest-signups").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/interest-signups").permitAll()
+                .requestMatchers(HttpMethod.POST, "/public/interest-signups").permitAll()
+                .requestMatchers("/public/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/brands/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/products/**").hasRole("ADMIN")
