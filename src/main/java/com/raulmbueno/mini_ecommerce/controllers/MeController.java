@@ -27,6 +27,7 @@ public class MeController {
         Map<String, Object> body = new HashMap<>();
         if (principal instanceof User user) {
             body.put("email", user.getEmail());
+            body.put("name", user.getName());
             body.put("roles", user.getRoles().stream()
                     .map(r -> r.getAuthority())
                     .collect(Collectors.toList()));

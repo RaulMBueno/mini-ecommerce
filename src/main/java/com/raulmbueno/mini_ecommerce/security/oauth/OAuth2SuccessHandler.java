@@ -17,8 +17,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Após login Google (OAuth2): só emite JWT e redireciona com token se email == ADMIN_EMAIL.
- * Caso contrário redireciona para /oauth2/redirect?error=unauthorized (sem token).
+ * Após login Google (OAuth2):
+ * - E-mail == ADMIN_EMAIL: JWT admin (ROLE_ADMIN), redirect ?token= → front salva e vai para /admin.
+ * - Demais e-mails: usuário comum (ROLE_CLIENT), JWT em ?customerToken= → front salva e vai para a loja.
  */
 @Component
 @ConditionalOnExpression("T(org.springframework.util.StringUtils).hasText('${spring.security.oauth2.client.registration.google.client-id:}')")
@@ -48,18 +49,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        String adminEmailTrimmed = adminEmail != null ? adminEmail.trim() : "";
-        if (adminEmailTrimmed.isEmpty() || !email.equalsIgnoreCase(adminEmailTrimmed)) {
-            redirectUnauthorized(response);
-            return;
-        }
-
         String name = oauth2User.getAttribute("name");
-        User user = userService.findOrCreateForOAuth2(email, name, true);
+        String adminEmailTrimmed = adminEmail != null ? adminEmail.trim() : "";
+        boolean isAdmin = !adminEmailTrimmed.isEmpty() && email.equalsIgnoreCase(adminEmailTrimmed);
+
+        User user = userService.findOrCreateForOAuth2(email, name, isAdmin);
         String jwt = tokenService.generateToken(user);
 
         String baseUrl = getBaseUrl();
-        String redirectUrl = baseUrl + "/oauth2/redirect?token=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8);
+        String param = isAdmin ? "token" : "customerToken";
+        String redirectUrl = baseUrl + "/oauth2/redirect?" + param + "=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8);
         response.sendRedirect(redirectUrl);
     }
 
